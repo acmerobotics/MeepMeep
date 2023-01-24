@@ -1,6 +1,6 @@
 package com.noahbres.meepmeep
 
-import com.acmerobotics.roadrunner.geometry.Vector2d
+import com.acmerobotics.roadrunner.Vector2d
 import com.noahbres.meepmeep.core.colorscheme.ColorManager
 import com.noahbres.meepmeep.core.colorscheme.ColorScheme
 import com.noahbres.meepmeep.core.entity.*

@@ -1,6 +1,7 @@
 package com.noahbres.meepmeep.roadrunner.ui
 
 import com.noahbres.meepmeep.roadrunner.entity.RoadRunnerBotEntity
+import com.noahbres.meepmeep.roadrunner.entity.actionTimeline
 import java.awt.*
 import java.awt.image.BufferedImage
 import java.text.DecimalFormat
@@ -50,11 +51,11 @@ class TrajectoryProgressSubSlider(
 
         g.font = font.deriveFont(16f)
         g.color = textColor
-        if (entity.currentTrajectorySequence != null) {
+        if (entity.currentAction != null) {
             val progressText = DecimalFormat("0.00").format(
                 progress * maxTrajectoryDuration
             )
-            val totalText = DecimalFormat("0.00").format(entity.currentTrajectorySequence!!.duration())
+            val totalText = DecimalFormat("0.00").format(actionTimeline(entity.currentAction!!).first)
             val mainDrawString = "${progressText} / ${totalText}s"
 
             g.drawString(

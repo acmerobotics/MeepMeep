@@ -1,8 +1,7 @@
 package com.noahbres.meepmeep.roadrunner.entity
 
-import com.acmerobotics.roadrunner.geometry.Pose2d
-import com.acmerobotics.roadrunner.geometry.Vector2d
-import com.acmerobotics.roadrunner.trajectory.MarkerCallback
+import com.acmerobotics.roadrunner.Pose2d
+import com.acmerobotics.roadrunner.Vector2d
 import com.noahbres.meepmeep.MeepMeep
 import com.noahbres.meepmeep.core.anim.AnimationController
 import com.noahbres.meepmeep.core.anim.Ease
@@ -21,7 +20,6 @@ class MarkerIndicatorEntity(
         override val meepMeep: MeepMeep,
         private var colorScheme: ColorScheme,
         private val pos: Pose2d,
-        private val callback: MarkerCallback,
         val time: Double,
 ) : ThemedEntity {
     private var canvasWidth = FieldUtil.CANVAS_WIDTH
@@ -52,18 +50,18 @@ class MarkerIndicatorEntity(
     override fun render(gfx: Graphics2D, canvasWidth: Int, canvasHeight: Int) {
         gfx.color = colorScheme.TRAJECTORY_MARKER_COLOR
 
-        val X_LEFT_UP = ((Vector2d(
+        val X_LEFT_UP = (pos.rot * (Vector2d(
                 cos((-45.0).toRadians()), sin((-45.0).toRadians())
-        ) * MARKER_X_RADIUS.scaleInToPixel()).rotated(pos.heading) + pos.vec()).toScreenCoord()
-        val X_LEFT_DOWN = ((Vector2d(
+        ) * MARKER_X_RADIUS.scaleInToPixel()) + pos.trans).toScreenCoord()
+        val X_LEFT_DOWN = (pos.rot * (Vector2d(
                 cos((135.0).toRadians()), sin((135.0).toRadians())
-        ) * MARKER_X_RADIUS.scaleInToPixel()).rotated(pos.heading) + pos.vec()).toScreenCoord()
-        val X_RIGHT_UP = ((Vector2d(
+        ) * MARKER_X_RADIUS.scaleInToPixel()) + pos.trans).toScreenCoord()
+        val X_RIGHT_UP = (pos.rot * (Vector2d(
                 cos((45.0).toRadians()), sin((45.0).toRadians())
-        ) * MARKER_X_RADIUS.scaleInToPixel()).rotated(pos.heading) + pos.vec()).toScreenCoord()
-        val X_RIGHT_DOWN = ((Vector2d(
+        ) * MARKER_X_RADIUS.scaleInToPixel()) + pos.trans).toScreenCoord()
+        val X_RIGHT_DOWN = (pos.rot * (Vector2d(
                 cos((225.0).toRadians()), sin((255.0).toRadians())
-        ) * MARKER_X_RADIUS.scaleInToPixel()).rotated(pos.heading) + pos.vec()).toScreenCoord()
+        ) * MARKER_X_RADIUS.scaleInToPixel()) + pos.trans).toScreenCoord()
 
         gfx.stroke = BasicStroke(MARKER_X_STROKE_WIDTH.scaleInToPixel().toFloat())
         gfx.drawLine(
@@ -77,8 +75,8 @@ class MarkerIndicatorEntity(
 
         gfx.stroke = BasicStroke(MARKER_CIRCLE_STROKE_WIDTH.scaleInToPixel().toFloat())
         gfx.drawArc(
-                (pos.vec().toScreenCoord().x - currentCircleRadius.scaleInToPixel() / 2).toInt(),
-                (pos.vec().toScreenCoord().y - currentCircleRadius.scaleInToPixel() / 2).toInt(),
+                (pos.trans.toScreenCoord().x - currentCircleRadius.scaleInToPixel() / 2).toInt(),
+                (pos.trans.toScreenCoord().y - currentCircleRadius.scaleInToPixel() / 2).toInt(),
                 currentCircleRadius.scaleInToPixel().toInt(),
                 currentCircleRadius.scaleInToPixel().toInt(),
                 0, 360
@@ -89,7 +87,6 @@ class MarkerIndicatorEntity(
         if (!passed) {
             passed = true
             animationController.anim(0.0, 200.0, Ease.EASE_IN_OUT_CUBIC)
-            callback.onMarkerReached()
         }
     }
 

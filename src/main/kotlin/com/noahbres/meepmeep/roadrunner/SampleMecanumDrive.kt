@@ -1,6 +1,6 @@
 package com.noahbres.meepmeep.roadrunner
 
-import com.acmerobotics.roadrunner.trajectory.constraints.*
+import com.acmerobotics.roadrunner.*
 
 class SampleMecanumDrive {
     companion object {
@@ -9,18 +9,18 @@ class SampleMecanumDrive {
             maxVel: Double,
             maxAngularVel: Double,
             trackWidth: Double
-        ): TrajectoryVelocityConstraint {
-            return MinVelocityConstraint(
+        ): VelConstraint {
+            return MinVelConstraint(
                 listOf(
-                    AngularVelocityConstraint(maxAngularVel),
-                    MecanumVelocityConstraint(maxVel, trackWidth)
+                    AngularVelConstraint(maxAngularVel),
+                    MecanumKinematics(trackWidth).WheelVelConstraint(maxVel),
                 )
             )
         }
 
         @JvmStatic
-        fun getAccelerationConstraint(maxAccel: Double): TrajectoryAccelerationConstraint? {
-            return ProfileAccelerationConstraint(maxAccel)
+        fun getAccelerationConstraint(maxAccel: Double): AccelConstraint? {
+            return ProfileAccelConstraint(-maxAccel, maxAccel)
         }
     }
 }

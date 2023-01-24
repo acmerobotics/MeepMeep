@@ -1,6 +1,9 @@
 package com.noahbres.meepmeep.roadrunner.entity
 
-import com.acmerobotics.roadrunner.geometry.Pose2d
+import com.acmerobotics.roadrunner.Action
+import com.acmerobotics.roadrunner.Pose2d
+import com.acmerobotics.roadrunner.SleepAction
+import com.acmerobotics.roadrunner.TrajectoryActionBuilder
 import com.noahbres.meepmeep.MeepMeep
 import com.noahbres.meepmeep.core.colorscheme.ColorScheme
 import com.noahbres.meepmeep.core.entity.BotEntity
@@ -9,11 +12,6 @@ import com.noahbres.meepmeep.core.exhaustive
 import com.noahbres.meepmeep.roadrunner.Constraints
 import com.noahbres.meepmeep.roadrunner.DriveShim
 import com.noahbres.meepmeep.roadrunner.DriveTrainType
-import com.noahbres.meepmeep.roadrunner.trajectorysequence.*
-import com.noahbres.meepmeep.roadrunner.trajectorysequence.sequencesegment.SequenceSegment
-import com.noahbres.meepmeep.roadrunner.trajectorysequence.sequencesegment.TrajectorySegment
-import com.noahbres.meepmeep.roadrunner.trajectorysequence.sequencesegment.TurnSegment
-import com.noahbres.meepmeep.roadrunner.trajectorysequence.sequencesegment.WaitSegment
 import com.noahbres.meepmeep.roadrunner.ui.TrajectoryProgressSliderMaster
 import kotlin.math.min
 
@@ -41,16 +39,16 @@ class RoadRunnerBotEntity(
 
     var drive = DriveShim(driveTrainType, constraints, pose)
 
-    var currentTrajectorySequence: TrajectorySequence? = null
+    var currentAction: Action? = null
 
-    private var trajectorySequenceEntity: TrajectorySequenceEntity? = null
+    private var actionEntity: ActionEntity? = null
 
     var looping = true
     private var running = false
 
     private var trajectorySequenceElapsedTime = 0.0
         set(value) {
-            trajectorySequenceEntity?.trajectoryProgress = value
+            actionEntity?.trajectoryProgress = value
             field = value
         }
 
@@ -68,36 +66,43 @@ class RoadRunnerBotEntity(
 
         if (!trajectoryPaused) trajectorySequenceElapsedTime += deltaTime / 1e9
 
+        val (dt, timeline) = actionTimeline(currentAction!!)
+
         when {
-            trajectorySequenceElapsedTime <= currentTrajectorySequence!!.duration() -> {
-                var segment: SequenceSegment? = null
+            trajectorySequenceElapsedTime <= dt -> {
+                var segment: Action? = null
                 var segmentOffsetTime = 0.0
 
                 var currentTime = 0.0
 
-                for(i in 0 until currentTrajectorySequence!!.size()) {
-                    val seg = currentTrajectorySequence!!.get(i)
+                for ((_, seg) in timeline) {
+                    val duration = when (seg) {
+                        is TrajectoryAction -> seg.t.duration
+                        is TurnAction -> seg.t.duration
+                        is SleepAction -> seg.dt
+                        else -> 0.0
+                    }
 
-                    if (currentTime + seg.duration > trajectorySequenceElapsedTime) {
+                    if (currentTime + duration > trajectorySequenceElapsedTime) {
                         segmentOffsetTime = trajectorySequenceElapsedTime - currentTime
                         segment = seg
 
                         break
                     } else {
-                        currentTime += seg.duration
+                        currentTime += duration
                     }
                 }
 
                 pose = when (segment) {
-                    is WaitSegment -> segment.startPose
-                    is TurnSegment -> segment.startPose.copy(heading = segment.motionProfile[segmentOffsetTime].x)
-                    is TrajectorySegment -> segment.trajectory[segmentOffsetTime]
-                    else -> currentTrajectorySequence!!.end()
+                    is SleepAction -> pose
+                    is TurnAction -> segment.t[segmentOffsetTime].value()
+                    is TrajectoryAction -> segment.t[segmentOffsetTime].value()
+                    else -> pose
                 }
 
-                drive.poseEstimate = pose;
+                drive.poseEstimate = pose
 
-                trajectorySequenceEntity!!.markerEntityList.forEach { if (trajectorySequenceElapsedTime >= it.time) it.passed() }
+                actionEntity!!.markerEntityList.forEach { if (trajectorySequenceElapsedTime >= it.time) it.passed() }
 
                 sliderMaster?.reportProgress(sliderMasterIndex ?: -1, trajectorySequenceElapsedTime)
 
@@ -105,7 +110,7 @@ class RoadRunnerBotEntity(
             }
 
             looping -> {
-                trajectorySequenceEntity!!.markerEntityList.forEach {
+                actionEntity!!.markerEntityList.forEach {
                     it.reset()
                 }
                 trajectorySequenceElapsedTime = 0.0
@@ -141,14 +146,14 @@ class RoadRunnerBotEntity(
     }
 
     fun setTrajectoryProgressSeconds(seconds: Double) {
-        if (currentTrajectorySequence != null)
-            trajectorySequenceElapsedTime = min(seconds, currentTrajectorySequence!!.duration())
+        if (currentAction != null)
+            trajectorySequenceElapsedTime = min(seconds, actionTimeline(currentAction!!).first)
     }
 
-    fun followTrajectorySequence(sequence: TrajectorySequence) {
-        currentTrajectorySequence = sequence
+    fun runAction(action: Action) {
+        currentAction = action
 
-        trajectorySequenceEntity = TrajectorySequenceEntity(meepMeep, sequence, colorScheme)
+        actionEntity = ActionEntity(meepMeep, action, colorScheme)
     }
 
     fun setConstraints(constraints: Constraints) {
@@ -174,12 +179,12 @@ class RoadRunnerBotEntity(
     }
 
     override fun onAddToEntityList() {
-        if (trajectorySequenceEntity != null)
-            meepMeep.requestToAddEntity(trajectorySequenceEntity!!)
+        if (actionEntity != null)
+            meepMeep.requestToAddEntity(actionEntity!!)
     }
 
     override fun onRemoveFromEntityList() {
-        if (trajectorySequenceEntity != null)
-            meepMeep.requestToRemoveEntity(trajectorySequenceEntity!!)
+        if (actionEntity != null)
+            meepMeep.requestToRemoveEntity(actionEntity!!)
     }
 }

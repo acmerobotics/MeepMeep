@@ -1,6 +1,7 @@
 package com.noahbres.meepmeep.roadrunner.entity
 
-import com.acmerobotics.roadrunner.geometry.Vector2d
+import com.acmerobotics.roadrunner.Rotation2d
+import com.acmerobotics.roadrunner.Vector2d
 import com.noahbres.meepmeep.MeepMeep
 import com.noahbres.meepmeep.core.*
 import com.noahbres.meepmeep.core.colorscheme.ColorScheme
@@ -54,7 +55,7 @@ class TurnIndicatorEntity(
                 abs(startAngle.toDegrees().toInt() - endAngle.toDegrees().toInt())
         )
 
-        val arrowPointVec = Vector2d(TURN_ARC_RADIUS / 2, 0.0).rotated(endAngle)
+        val arrowPointVec = Rotation2d.exp(endAngle) * Vector2d(TURN_ARC_RADIUS / 2, 0.0)
         val translatedPoint = (pos + arrowPointVec).toScreenCoord()
 
         var arrow1Rotated = endAngle - 90.0.toRadians() + TURN_ARROW_ANGLE + TURN_ARROW_ANGLE_ADJUSTMENT
@@ -63,11 +64,10 @@ class TurnIndicatorEntity(
         var arrow2Rotated = endAngle - 90.0.toRadians() - TURN_ARROW_ANGLE + TURN_ARROW_ANGLE_ADJUSTMENT
         if (endAngle < startAngle) arrow2Rotated = 360.0.toRadians() - arrow2Rotated
 
-        val arrowEndVec1 = (pos + arrowPointVec) + Vector2d(TURN_ARROW_LENGTH, 0.0)
-                .rotated(arrow1Rotated)
+        val arrowEndVec1 = (pos + arrowPointVec) + Rotation2d.exp(arrow1Rotated) * Vector2d(TURN_ARROW_LENGTH, 0.0)
         val translatedArrowEndVec1 = arrowEndVec1.toScreenCoord()
 
-        val arrowEndVec2 = (pos + arrowPointVec) + Vector2d(TURN_ARROW_LENGTH, 0.0).rotated(arrow2Rotated)
+        val arrowEndVec2 = (pos + arrowPointVec) + Rotation2d.exp(arrow2Rotated) * Vector2d(TURN_ARROW_LENGTH, 0.0)
         val translatedArrowEndVec2 = arrowEndVec2.toScreenCoord()
 
         gfx.drawLine(translatedPoint.x.toInt(), translatedPoint.y.toInt(), translatedArrowEndVec1.x.toInt(), translatedArrowEndVec1.y.toInt())

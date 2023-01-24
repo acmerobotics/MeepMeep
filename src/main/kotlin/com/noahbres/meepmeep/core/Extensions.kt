@@ -1,6 +1,6 @@
 package com.noahbres.meepmeep.core
 
-import com.acmerobotics.roadrunner.geometry.Vector2d
+import com.acmerobotics.roadrunner.Vector2d
 import com.noahbres.meepmeep.core.util.FieldUtil
 
 fun Vector2d.toScreenCoord() = FieldUtil.fieldCoordsToScreenCoords(this)

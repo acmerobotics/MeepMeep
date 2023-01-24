@@ -1,10 +1,9 @@
 package com.noahbres.meepmeep.roadrunner
 
-import com.acmerobotics.roadrunner.geometry.Pose2d
+import com.acmerobotics.roadrunner.Pose2d
 import com.noahbres.meepmeep.MeepMeep
 import com.noahbres.meepmeep.core.colorscheme.ColorScheme
 import com.noahbres.meepmeep.roadrunner.entity.RoadRunnerBotEntity
-import com.noahbres.meepmeep.roadrunner.trajectorysequence.TrajectorySequence
 
 class DefaultBotBuilder(private val meepMeep: MeepMeep) {
 
@@ -15,7 +14,7 @@ class DefaultBotBuilder(private val meepMeep: MeepMeep) {
     private var width = 18.0
     private var height = 18.0
 
-    private var startPose = Pose2d()
+    private var startPose = Pose2d(0.0, 0.0, 0.0)
     private var colorScheme: ColorScheme? = null
     private var opacity = 0.8
 
@@ -72,16 +71,5 @@ class DefaultBotBuilder(private val meepMeep: MeepMeep) {
             startPose, colorScheme ?: meepMeep.colorManager.theme, opacity,
             driveTrainType, false
         )
-    }
-
-    fun followTrajectorySequence(trajectorySequence: TrajectorySequence): RoadRunnerBotEntity {
-        val bot = this.build()
-        bot.followTrajectorySequence(trajectorySequence)
-
-        return bot
-    }
-
-    fun followTrajectorySequence(callback: AddTrajectorySequenceCallback): RoadRunnerBotEntity {
-        return followTrajectorySequence(callback.buildTrajectorySequence(build().drive))
     }
 }

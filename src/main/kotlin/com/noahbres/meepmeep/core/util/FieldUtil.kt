@@ -1,6 +1,6 @@
 package com.noahbres.meepmeep.core.util
 
-import com.acmerobotics.roadrunner.geometry.Vector2d
+import com.acmerobotics.roadrunner.Vector2d
 
 import kotlin.math.max
 import kotlin.math.min

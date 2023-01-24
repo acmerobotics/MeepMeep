@@ -1,34 +1,41 @@
 package com.noahbres.meepmeep.roadrunner
 
-import com.acmerobotics.roadrunner.geometry.Pose2d
-import com.acmerobotics.roadrunner.trajectory.constraints.*
-import com.noahbres.meepmeep.roadrunner.trajectorysequence.TrajectorySequenceBuilder
+import com.acmerobotics.roadrunner.*
+import com.noahbres.meepmeep.roadrunner.entity.TrajectoryAction
+import com.noahbres.meepmeep.roadrunner.entity.TurnAction
 
 class DriveShim(driveTrainType: DriveTrainType, private val constraints: Constraints, var poseEstimate: Pose2d) {
     private val velConstraint = when (driveTrainType) {
-        DriveTrainType.MECANUM -> MinVelocityConstraint(
+        DriveTrainType.MECANUM -> MinVelConstraint(
             listOf(
-                AngularVelocityConstraint(constraints.maxAngVel),
-                MecanumVelocityConstraint(constraints.maxVel, constraints.trackWidth)
+                AngularVelConstraint(constraints.maxAngVel),
+                MecanumKinematics(constraints.trackWidth).WheelVelConstraint(constraints.maxVel),
             )
         )
-        DriveTrainType.TANK -> MinVelocityConstraint(
+        DriveTrainType.TANK -> MinVelConstraint(
             listOf(
-                AngularVelocityConstraint(constraints.maxAngVel),
-                TankVelocityConstraint(constraints.maxVel, constraints.trackWidth)
+                AngularVelConstraint(constraints.maxAngVel),
+                TankKinematics(constraints.trackWidth).WheelVelConstraint(constraints.maxVel),
             )
         )
     }
 
-    private val accelConstraint = ProfileAccelerationConstraint(constraints.maxAccel)
+    private val accelConstraint = ProfileAccelConstraint(-constraints.maxAccel, constraints.maxAccel)
 
-    fun trajectorySequenceBuilder(startPose: Pose2d): TrajectorySequenceBuilder {
-        return TrajectorySequenceBuilder(
+    fun actionBuilder(startPose: Pose2d): TrajectoryActionBuilder {
+        return TrajectoryActionBuilder(
+            { TurnAction(it) },
+            { TrajectoryAction(it) },
             startPose,
+            1e-6,
+            TurnConstraints(
+                constraints.maxAngVel,
+                -constraints.maxAngAccel,
+                constraints.maxAngAccel,
+            ),
             velConstraint,
             accelConstraint,
-            constraints.maxAngVel,
-            constraints.maxAngAccel,
+            0.25,
         )
     }
 }

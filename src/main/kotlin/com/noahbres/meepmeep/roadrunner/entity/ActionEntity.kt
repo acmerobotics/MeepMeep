@@ -1,23 +1,73 @@
 package com.noahbres.meepmeep.roadrunner.entity
 
-import com.acmerobotics.roadrunner.geometry.Pose2d
+import com.acmerobotics.roadrunner.*
 import com.noahbres.meepmeep.MeepMeep
 import com.noahbres.meepmeep.core.colorscheme.ColorScheme
 import com.noahbres.meepmeep.core.entity.ThemedEntity
 import com.noahbres.meepmeep.core.toScreenCoord
 import com.noahbres.meepmeep.core.util.FieldUtil
-import com.noahbres.meepmeep.roadrunner.trajectorysequence.*
-import com.noahbres.meepmeep.roadrunner.trajectorysequence.sequencesegment.TrajectorySegment
-import com.noahbres.meepmeep.roadrunner.trajectorysequence.sequencesegment.TurnSegment
-import com.noahbres.meepmeep.roadrunner.trajectorysequence.sequencesegment.WaitSegment
 import java.awt.*
 import java.awt.geom.Path2D
 import java.awt.image.BufferedImage
+import java.lang.RuntimeException
 import kotlin.math.roundToInt
 
-class TrajectorySequenceEntity(
+class TrajectoryAction(val t: TimeTrajectory) : Action {
+    override fun run(p: com.acmerobotics.dashboard.telemetry.TelemetryPacket) = TODO()
+}
+class TurnAction(val t: TimeTurn) : Action {
+    override fun run(p: com.acmerobotics.dashboard.telemetry.TelemetryPacket) = TODO()
+}
+
+fun actionTimeline(a: Action): Pair<Double, List<Pair<Double, Action>>> {
+    val timeline = mutableListOf<Pair<Double, Action>>()
+
+    fun aux(t0: Double, a: Action): Double {
+        when (a) {
+            is SequentialAction -> {
+                var t = t0
+                for (a2 in a.initialActions) {
+                    t = aux(t, a2)
+                }
+                return t
+            }
+
+            is ParallelAction -> {
+                return a.initialActions.maxOf { a2 ->
+                    aux(t0, a2)
+                }
+            }
+
+            is TrajectoryAction -> {
+                timeline.add(Pair(t0, a))
+                return t0 + a.t.profile.duration
+            }
+
+            is TurnAction -> {
+                timeline.add(Pair(t0, a))
+                return t0 + a.t.profile.duration
+            }
+
+            is SleepAction -> {
+                return t0 + a.dt
+            }
+
+            else -> {
+                throw RuntimeException()
+            }
+        }
+    }
+
+    val dt = aux(0.0, a)
+
+    timeline.sortBy { it.first }
+
+    return Pair(dt, timeline)
+}
+
+class ActionEntity(
     override val meepMeep: MeepMeep,
-    private val trajectorySequence: TrajectorySequence,
+    private val action: Action,
     private var colorScheme: ColorScheme
 ) : ThemedEntity {
     companion object {
@@ -45,10 +95,12 @@ class TrajectorySequenceEntity(
 
     private var currentSegmentImage: BufferedImage? = null
 
-    private var lastSegment: TrajectorySegment? = null
-    private var currentSegment: TrajectorySegment? = null
+    private var lastSegment: TrajectoryAction? = null
+    private var currentSegment: TrajectoryAction? = null
 
     var trajectoryProgress: Double? = null
+
+    val timeline = actionTimeline(action).second
 
     init {
         redrawPath()
@@ -90,74 +142,59 @@ class TrajectorySequenceEntity(
 //            BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND
 //        )
 
-        var currentEndPose = trajectorySequence.start()
+        var first = true
 
-        val firstVec = trajectorySequence.start().vec().toScreenCoord()
-        trajectoryDrawnPath.moveTo(firstVec.x, firstVec.y)
+//        val firstVec = action.start().vec().toScreenCoord()
+//        trajectoryDrawnPath.moveTo(firstVec.x, firstVec.y)
 
-        for (i in 0 until trajectorySequence.size()) {
-            when (val step = trajectorySequence.get(i)) {
-                is TrajectorySegment -> {
-                    val traj = step.trajectory
-
-                    val displacementSamples = (traj.path.length() / SAMPLE_RESOLUTION).roundToInt()
+        for ((t0, action) in timeline) {
+            when (action) {
+                is TrajectoryAction -> {
+                    val displacementSamples = (action.t.path.length() / SAMPLE_RESOLUTION).roundToInt()
 
                     val displacements = (0..displacementSamples).map {
-                        it / displacementSamples.toDouble() * traj.path.length()
+                        it / displacementSamples.toDouble() * action.t.path.length()
                     }
 
-                    val poses = displacements.map { traj.path[it] }
+                    val poses = displacements.map { action.t.path[it, 1].value() }
 
                     for (pose in poses.drop(1)) {
-                        val coord = pose.vec().toScreenCoord()
-                        trajectoryDrawnPath.lineTo(coord.x, coord.y)
+                        val coord = pose.trans.toScreenCoord()
+                        if (first) {
+                            trajectoryDrawnPath.moveTo(coord.x, coord.y)
+                            first = false
+                        } else {
+                            trajectoryDrawnPath.lineTo(coord.x, coord.y)
+                        }
                     }
-
-                    currentEndPose = step.trajectory.end()
                 }
-
-                is TurnSegment -> {
+                is TurnAction -> {
                     val turnEntity = TurnIndicatorEntity(
-                        meepMeep, colorScheme, currentEndPose.vec(), currentEndPose.heading,
-                        currentEndPose.heading + step.totalRotation
+                        meepMeep, colorScheme, action.t.beginPose.trans, action.t.beginPose.rot.log(),
+                        (action.t.beginPose.rot + action.t.angle).log()
                     )
                     turnEntityList.add(turnEntity)
                     meepMeep.requestToAddEntity(turnEntity)
                 }
-                is WaitSegment -> {
-                }
             }
         }
 
-        var currentTime = 0.0
-
-        for (i in 0 until trajectorySequence.size()) {
-            val segment = trajectorySequence.get(i)
-            if (segment is WaitSegment || segment is TurnSegment) {
-                segment.markers.forEach { marker ->
-                    val pose = when (segment) {
-                        is WaitSegment -> segment.startPose
-                        is TurnSegment -> segment.startPose.copy(heading = segment.motionProfile[marker.time].x)
-                        else -> Pose2d()
-                    }
-
-                    val markerEntity =
-                        MarkerIndicatorEntity(meepMeep, colorScheme, pose, marker.callback, currentTime + marker.time)
-                    markerEntityList.add(markerEntity)
-                    meepMeep.requestToAddEntity(markerEntity)
+        var poseSupplier: (Double) -> Pose2d = { Pose2d(0.0, 0.0, 0.0) }
+        for ((t0, action) in timeline) {
+            when (action) {
+                is SleepAction -> {}
+                is TurnAction -> {
+                    poseSupplier = { action.t[it - t0].value() }
                 }
-            } else if (segment is TrajectorySegment) {
-                segment.trajectory.markers.forEach { marker ->
-                    val pose = segment.trajectory[marker.time]
-
-                    val markerEntity =
-                        MarkerIndicatorEntity(meepMeep, colorScheme, pose, marker.callback, currentTime + marker.time)
+                is TrajectoryAction -> {
+                    poseSupplier = { action.t[it - t0].value() }
+                }
+                else -> {
+                    val markerEntity = MarkerIndicatorEntity(meepMeep, colorScheme, poseSupplier(t0), t0)
                     markerEntityList.add(markerEntity)
                     meepMeep.requestToAddEntity(markerEntity)
                 }
             }
-
-            currentTime += segment.duration
         }
 
 //        gfx.stroke = outerStroke
@@ -206,9 +243,9 @@ class TrajectorySequenceEntity(
             BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND
         )
 
-        val traj = currentSegment!!.trajectory
+        val traj = currentSegment!!.t
 
-        val firstVec = currentSegment!!.startPose.vec().toScreenCoord()
+        val firstVec = currentSegment!!.t.path.begin(1).trans.value().toScreenCoord()
         trajectoryDrawnPath.moveTo(firstVec.x, firstVec.y)
 
         val displacementSamples = (traj.path.length() / SAMPLE_RESOLUTION).roundToInt()
@@ -217,10 +254,10 @@ class TrajectorySequenceEntity(
             it / displacementSamples.toDouble() * traj.path.length()
         }
 
-        val poses = displacements.map { traj.path[it] }
+        val poses = displacements.map { traj.path[it, 1].value() }
 
         for (pose in poses.drop(1)) {
-            val coord = pose.vec().toScreenCoord()
+            val coord = pose.trans.toScreenCoord()
             trajectoryDrawnPath.lineTo(coord.x, coord.y)
         }
 
@@ -237,21 +274,13 @@ class TrajectorySequenceEntity(
     }
 
     override fun update(deltaTime: Long) {
-        if (trajectoryProgress == null) {
-            currentSegment = null
+        currentSegment = if (trajectoryProgress == null) {
+            null
         } else {
-            var currentTime = 0.0
-            for (i in 0 until trajectorySequence.size()) {
-                val seg = trajectorySequence.get(i)
-
-                if (currentTime + seg.duration > trajectoryProgress!!) {
-                    if (seg is TrajectorySegment) currentSegment = seg
-
-                    break
-                } else {
-                    currentTime += seg.duration
-                }
-            }
+            (timeline
+                .filter { (_, a) -> a is TrajectoryAction } as List<Pair<Double, TrajectoryAction>>)
+                .firstOrNull { (t0, a) -> trajectoryProgress!! < (t0 + a.t.duration) }
+                ?.second
         }
 
         if (lastSegment != currentSegment) {

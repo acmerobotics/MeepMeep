@@ -1,6 +1,6 @@
 package com.noahbres.meepmeep.core.entity
 
-import com.acmerobotics.roadrunner.geometry.Vector2d
+import com.acmerobotics.roadrunner.Vector2d
 import com.noahbres.meepmeep.MeepMeep
 import com.noahbres.meepmeep.core.util.FieldUtil
 import com.noahbres.meepmeep.core.anim.AnimationController

@@ -26,12 +26,13 @@ repositories {
     // You can declare any Maven/Ivy/file repository here
     maven(url = "https://maven.brott.dev/")
     mavenCentral()
+    mavenLocal()
 }
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
-}
+//java {
+//    sourceCompatibility = JavaVersion.VERSION_1_8
+//    targetCompatibility = JavaVersion.VERSION_1_8
+//}
 
 dependencies {
     // Align versions of all Kotlin components
@@ -43,7 +44,8 @@ dependencies {
     // Use the Kotlin test library.
     testImplementation("org.jetbrains.kotlin:kotlin-test")
 
-    api("com.acmerobotics.roadrunner:core:0.5.5")
+    api("com.acmerobotics.roadrunner:core:1.0.0-beta2-SNAPSHOT")
+    api("com.acmerobotics.roadrunner:actions:1.0.0-beta2-SNAPSHOT")
 }
 
 sourceSets["main"].java {
