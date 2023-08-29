@@ -3,7 +3,6 @@ package com.noahbres.meepmeep.roadrunner.entity
 import com.acmerobotics.roadrunner.Action
 import com.acmerobotics.roadrunner.Pose2d
 import com.acmerobotics.roadrunner.SleepAction
-import com.acmerobotics.roadrunner.TrajectoryActionBuilder
 import com.noahbres.meepmeep.MeepMeep
 import com.noahbres.meepmeep.core.colorscheme.ColorScheme
 import com.noahbres.meepmeep.core.entity.BotEntity
@@ -15,6 +14,8 @@ import com.noahbres.meepmeep.roadrunner.DriveTrainType
 import com.noahbres.meepmeep.roadrunner.ui.TrajectoryProgressSliderMaster
 import kotlin.math.min
 
+// TODO(ryanbrott): seems like the bot should own the path entities and selectively update/render the ones
+// that need it and also update the pose (perhaps there should be another Entity interface?)
 class RoadRunnerBotEntity(
     meepMeep: MeepMeep,
     private var constraints: Constraints,

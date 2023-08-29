@@ -1,7 +1,6 @@
 package com.noahbres.meepmeep.core.entity
 
 import com.acmerobotics.roadrunner.Pose2d
-import com.acmerobotics.roadrunner.Vector2d
 import com.noahbres.meepmeep.MeepMeep
 import com.noahbres.meepmeep.core.util.FieldUtil
 import com.noahbres.meepmeep.core.colorscheme.ColorScheme
@@ -42,17 +41,15 @@ open class BotEntity(
         redrawBot()
     }
 
-    override fun update(deltaTime: Long) {
-        // TODO: is this doing anything?
-//        pose = Pose2d(pose.x, pose.y, pose.heading)
-    }
+    override fun update(deltaTime: Long) {}
 
     override fun render(gfx: Graphics2D, canvasWidth: Int, canvasHeight: Int) {
-        val coords = pose.trans.toScreenCoord()
+        val coords = pose.position.toScreenCoord()
 
         val transform = AffineTransform()
         transform.translate(coords.x, coords.y)
-        transform.rotate(atan2(pose.rot.imag, pose.rot.real))
+        // NOTE: rotation components are intentionally swapped here
+        transform.rotate(atan2(pose.heading.real, pose.heading.imag))
         transform.translate(
             FieldUtil.scaleInchesToPixel(-width / 2),
             FieldUtil.scaleInchesToPixel(-height / 2)

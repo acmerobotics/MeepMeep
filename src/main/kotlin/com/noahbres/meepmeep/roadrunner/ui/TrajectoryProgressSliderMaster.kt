@@ -2,6 +2,7 @@ package com.noahbres.meepmeep.roadrunner.ui
 
 import com.noahbres.meepmeep.MeepMeep
 import com.noahbres.meepmeep.roadrunner.entity.RoadRunnerBotEntity
+import com.noahbres.meepmeep.roadrunner.entity.actionTimeline
 import java.awt.event.ActionEvent
 import java.awt.event.MouseEvent
 import java.awt.event.MouseListener
@@ -51,16 +52,16 @@ class TrajectoryProgressSliderMaster(
     fun addRoadRunnerBot(bot: RoadRunnerBotEntity) {
         if (botList.indexOfFirst { it.first == bot } != -1) throw Exception("RoadRunnerBotEntity instance has already been added")
 
-//        val currSeqDuration = bot.currentTrajectorySequence?.duration() ?: 0.0
-//        if (currSeqDuration >= maxTrajectoryDuration) {
-//            maxTrajectoryDuration = currSeqDuration
-//            maxTrajectoryIndex = botList.size
-//        }
-//
-//        maxTrajectoryDuration = max(bot.currentTrajectorySequence?.duration() ?: 0.0, maxTrajectoryDuration)
-//        for ((_, slider) in botList) {
-//            slider.maxTrajectoryDuration = maxTrajectoryDuration
-//        }
+        val currSeqDuration = bot.currentAction?.let { actionTimeline(it).first } ?: 0.0
+        if (currSeqDuration >= maxTrajectoryDuration) {
+            maxTrajectoryDuration = currSeqDuration
+            maxTrajectoryIndex = botList.size
+        }
+
+        maxTrajectoryDuration = max(currSeqDuration, maxTrajectoryDuration)
+        for ((_, slider) in botList) {
+            slider.maxTrajectoryDuration = maxTrajectoryDuration
+        }
 
         if (botList.isEmpty())
             internalIsPaused = bot.trajectoryPaused

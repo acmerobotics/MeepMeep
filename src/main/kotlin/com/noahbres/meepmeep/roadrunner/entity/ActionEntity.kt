@@ -14,60 +14,67 @@ import kotlin.math.roundToInt
 
 class TrajectoryAction(val t: TimeTrajectory) : Action {
     override fun run(p: com.acmerobotics.dashboard.telemetry.TelemetryPacket) = TODO()
+    override fun toString() = t.toString()
 }
 class TurnAction(val t: TimeTurn) : Action {
     override fun run(p: com.acmerobotics.dashboard.telemetry.TelemetryPacket) = TODO()
+    override fun toString() = "${t.angle} ${t.beginPose} ${t.reversed}"
 }
 
-fun actionTimeline(a: Action): Pair<Double, List<Pair<Double, Action>>> {
-    val timeline = mutableListOf<Pair<Double, Action>>()
+data class ActionEvent(
+    val time: Double,
+    val a: Action, // primitive action (not SequentialAction, ParallelAction)
+)
 
-    fun aux(t0: Double, a: Action): Double {
+typealias Timeline = List<ActionEvent>
+typealias Duration = Double
+
+fun actionTimeline(a: Action): Pair<Duration, Timeline> {
+    val timeline = mutableListOf<ActionEvent>()
+
+    // Adds the primitive actions to the timeline starting at time. Returns the time at which a completes.
+    // Assumes custom actions complete instantly.
+    fun add(time: Double, a: Action): Double =
         when (a) {
             is SequentialAction -> {
-                var t = t0
-                for (a2 in a.initialActions) {
-                    t = aux(t, a2)
-                }
-                return t
+                a.initialActions.fold(time, ::add)
             }
 
             is ParallelAction -> {
-                return a.initialActions.maxOf { a2 ->
-                    aux(t0, a2)
+                a.initialActions.maxOf {
+                    add(time, it)
                 }
             }
 
             is TrajectoryAction -> {
-                timeline.add(Pair(t0, a))
-                return t0 + a.t.profile.duration
+                timeline.add(ActionEvent(time, a))
+                time + a.t.profile.duration
             }
 
             is TurnAction -> {
-                timeline.add(Pair(t0, a))
-                return t0 + a.t.profile.duration
+                timeline.add(ActionEvent(time, a))
+                time + a.t.profile.duration
             }
 
             is SleepAction -> {
-                return t0 + a.dt
+                time + a.dt
             }
 
             else -> {
-                throw RuntimeException()
+                time
             }
         }
-    }
 
-    val dt = aux(0.0, a)
+    val duration = add(0.0, a)
 
-    timeline.sortBy { it.first }
+    timeline.sortBy { it.time }
 
-    return Pair(dt, timeline)
+    return Pair(duration, timeline)
 }
 
 class ActionEntity(
     override val meepMeep: MeepMeep,
-    private val action: Action,
+    action: Action,
     private var colorScheme: ColorScheme
 ) : ThemedEntity {
     companion object {
@@ -76,7 +83,7 @@ class ActionEntity(
 
         const val PATH_OUTER_OPACITY = 0.4
 
-        const val PATH_UNFOCUSED_OPACTIY = 0.3
+        const val PATH_UNFOCUSED_OPACITY = 0.3
 
         const val SAMPLE_RESOLUTION = 1.2
     }
@@ -84,7 +91,7 @@ class ActionEntity(
     private var canvasWidth = FieldUtil.CANVAS_WIDTH
     private var canvasHeight = FieldUtil.CANVAS_HEIGHT
 
-    override val tag = "TRAJECTORY_SEQUENCE_ENTITY"
+    override val tag = "ACTION_ENTITY"
 
     override var zIndex: Int = 0
 
@@ -159,7 +166,7 @@ class ActionEntity(
                     val poses = displacements.map { action.t.path[it, 1].value() }
 
                     for (pose in poses.drop(1)) {
-                        val coord = pose.trans.toScreenCoord()
+                        val coord = pose.position.toScreenCoord()
                         if (first) {
                             trajectoryDrawnPath.moveTo(coord.x, coord.y)
                             first = false
@@ -170,8 +177,8 @@ class ActionEntity(
                 }
                 is TurnAction -> {
                     val turnEntity = TurnIndicatorEntity(
-                        meepMeep, colorScheme, action.t.beginPose.trans, action.t.beginPose.rot.log(),
-                        (action.t.beginPose.rot + action.t.angle).log()
+                        meepMeep, colorScheme, action.t.beginPose.position, action.t.beginPose.heading.log(),
+                        (action.t.beginPose.heading + action.t.angle).log()
                     )
                     turnEntityList.add(turnEntity)
                     meepMeep.requestToAddEntity(turnEntity)
@@ -199,16 +206,16 @@ class ActionEntity(
 
 //        gfx.stroke = outerStroke
 //        gfx.color = Color(
-//                colorScheme.TRAJCETORY_PATH_COLOR.red, colorScheme.TRAJCETORY_PATH_COLOR.green,
-//                colorScheme.TRAJCETORY_PATH_COLOR.blue, (PATH_OUTER_OPACITY * 255).toInt()
+//                colorScheme.TRAJECTORY_PATH_COLOR.red, colorScheme.TRAJECTORY_PATH_COLOR.green,
+//                colorScheme.TRAJECTORY_PATH_COLOR.blue, (PATH_OUTER_OPACITY * 255).toInt()
 //        )
 //        gfx.draw(trajectoryDrawnPath)
 
         gfx.stroke = innerStroke
-        gfx.color = colorScheme.TRAJCETORY_PATH_COLOR
+        gfx.color = colorScheme.TRAJECTORY_PATH_COLOR
         gfx.color = Color(
-            colorScheme.TRAJCETORY_PATH_COLOR.red, colorScheme.TRAJCETORY_PATH_COLOR.green,
-            colorScheme.TRAJCETORY_PATH_COLOR.blue, (PATH_UNFOCUSED_OPACTIY * 255).toInt()
+            colorScheme.TRAJECTORY_PATH_COLOR.red, colorScheme.TRAJECTORY_PATH_COLOR.green,
+            colorScheme.TRAJECTORY_PATH_COLOR.blue, (PATH_UNFOCUSED_OPACITY * 255).toInt()
 
         )
         gfx.draw(trajectoryDrawnPath)
@@ -245,7 +252,7 @@ class ActionEntity(
 
         val traj = currentSegment!!.t
 
-        val firstVec = currentSegment!!.t.path.begin(1).trans.value().toScreenCoord()
+        val firstVec = currentSegment!!.t.path.begin(1).position.value().toScreenCoord()
         trajectoryDrawnPath.moveTo(firstVec.x, firstVec.y)
 
         val displacementSamples = (traj.path.length() / SAMPLE_RESOLUTION).roundToInt()
@@ -257,19 +264,19 @@ class ActionEntity(
         val poses = displacements.map { traj.path[it, 1].value() }
 
         for (pose in poses.drop(1)) {
-            val coord = pose.trans.toScreenCoord()
+            val coord = pose.position.toScreenCoord()
             trajectoryDrawnPath.lineTo(coord.x, coord.y)
         }
 
         gfx.stroke = outerStroke
         gfx.color = Color(
-            colorScheme.TRAJCETORY_PATH_COLOR.red, colorScheme.TRAJCETORY_PATH_COLOR.green,
-            colorScheme.TRAJCETORY_PATH_COLOR.blue, (PATH_OUTER_OPACITY * 255).toInt()
+            colorScheme.TRAJECTORY_PATH_COLOR.red, colorScheme.TRAJECTORY_PATH_COLOR.green,
+            colorScheme.TRAJECTORY_PATH_COLOR.blue, (PATH_OUTER_OPACITY * 255).toInt()
         )
         gfx.draw(trajectoryDrawnPath)
 
         gfx.stroke = innerStroke
-        gfx.color = colorScheme.TRAJCETORY_PATH_COLOR
+        gfx.color = colorScheme.TRAJECTORY_PATH_COLOR
         gfx.draw(trajectoryDrawnPath)
     }
 
@@ -278,9 +285,16 @@ class ActionEntity(
             null
         } else {
             (timeline
-                .filter { (_, a) -> a is TrajectoryAction } as List<Pair<Double, TrajectoryAction>>)
-                .firstOrNull { (t0, a) -> trajectoryProgress!! < (t0 + a.t.duration) }
-                ?.second
+                .filter { (_, a) -> a is TrajectoryAction }
+                .firstOrNull { (t0, a) ->
+                    trajectoryProgress!! < (t0 +
+                            when (a) {
+                                is TrajectoryAction -> a.t.duration
+//                                is TurnAction -> a.t.duration
+//                                is SleepAction -> a.dt
+                                else -> throw RuntimeException()
+                            })
+                }?.a) as TrajectoryAction?
         }
 
         if (lastSegment != currentSegment) {

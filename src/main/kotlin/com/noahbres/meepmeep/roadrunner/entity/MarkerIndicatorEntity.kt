@@ -50,18 +50,18 @@ class MarkerIndicatorEntity(
     override fun render(gfx: Graphics2D, canvasWidth: Int, canvasHeight: Int) {
         gfx.color = colorScheme.TRAJECTORY_MARKER_COLOR
 
-        val X_LEFT_UP = (pos.rot * (Vector2d(
+        val X_LEFT_UP = (pos.heading * (Vector2d(
                 cos((-45.0).toRadians()), sin((-45.0).toRadians())
-        ) * MARKER_X_RADIUS.scaleInToPixel()) + pos.trans).toScreenCoord()
-        val X_LEFT_DOWN = (pos.rot * (Vector2d(
+        ) * MARKER_X_RADIUS.scaleInToPixel()) + pos.position).toScreenCoord()
+        val X_LEFT_DOWN = (pos.heading * (Vector2d(
                 cos((135.0).toRadians()), sin((135.0).toRadians())
-        ) * MARKER_X_RADIUS.scaleInToPixel()) + pos.trans).toScreenCoord()
-        val X_RIGHT_UP = (pos.rot * (Vector2d(
+        ) * MARKER_X_RADIUS.scaleInToPixel()) + pos.position).toScreenCoord()
+        val X_RIGHT_UP = (pos.heading * (Vector2d(
                 cos((45.0).toRadians()), sin((45.0).toRadians())
-        ) * MARKER_X_RADIUS.scaleInToPixel()) + pos.trans).toScreenCoord()
-        val X_RIGHT_DOWN = (pos.rot * (Vector2d(
+        ) * MARKER_X_RADIUS.scaleInToPixel()) + pos.position).toScreenCoord()
+        val X_RIGHT_DOWN = (pos.heading * (Vector2d(
                 cos((225.0).toRadians()), sin((255.0).toRadians())
-        ) * MARKER_X_RADIUS.scaleInToPixel()) + pos.trans).toScreenCoord()
+        ) * MARKER_X_RADIUS.scaleInToPixel()) + pos.position).toScreenCoord()
 
         gfx.stroke = BasicStroke(MARKER_X_STROKE_WIDTH.scaleInToPixel().toFloat())
         gfx.drawLine(
@@ -75,8 +75,8 @@ class MarkerIndicatorEntity(
 
         gfx.stroke = BasicStroke(MARKER_CIRCLE_STROKE_WIDTH.scaleInToPixel().toFloat())
         gfx.drawArc(
-                (pos.trans.toScreenCoord().x - currentCircleRadius.scaleInToPixel() / 2).toInt(),
-                (pos.trans.toScreenCoord().y - currentCircleRadius.scaleInToPixel() / 2).toInt(),
+                (pos.position.toScreenCoord().x - currentCircleRadius.scaleInToPixel() / 2).toInt(),
+                (pos.position.toScreenCoord().y - currentCircleRadius.scaleInToPixel() / 2).toInt(),
                 currentCircleRadius.scaleInToPixel().toInt(),
                 currentCircleRadius.scaleInToPixel().toInt(),
                 0, 360

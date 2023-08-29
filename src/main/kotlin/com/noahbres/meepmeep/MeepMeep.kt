@@ -233,7 +233,7 @@ open class MeepMeep @JvmOverloads constructor(private val windowSize: Int, fps: 
             "RR_BOT_ENTITY",
             "TURN_INDICATOR_ENTITY",
             "MARKER_INDICATOR_ENTITY",
-            "TRAJECTORY_SEQUENCE_ENTITY",
+            "ACTION_ENTITY",
             "COMPASS_ENTITY",
             "AXES_ENTITY",
         )
