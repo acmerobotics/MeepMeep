@@ -1,8 +1,6 @@
 # MeepMeep
 
-[![Release](https://jitpack.io/v/NoahBres/MeepMeep.svg)](https://jitpack.io/#NoahBres/MeepMeep)
-
-Path creation/visualization tool for Road Runner
+Fork of [MeepMeep](https://github.com/NoahBres/MeepMeep) that supports [Road Runner 1.0](https://rr.brott.dev/docs/v1-0/new-features/).
 
 <img src="/images/readme/screen-recording.gif" width="500" height="500"/>
 
@@ -35,12 +33,11 @@ Path creation/visualization tool for Road Runner
 
         ```
         repositories {
-            maven { url = 'https://jitpack.io' }
             maven { url = 'https://maven.brott.dev/' }
         }
 
         dependencies {
-            implementation 'com.github.NoahBres:MeepMeep:2.0.2'
+            implementation 'com.acmerobotics.roadrunner:MeepMeep:0.1.0'
         }
         ```
 
@@ -49,13 +46,10 @@ Path creation/visualization tool for Road Runner
 
 8.  Create a class for your MeepMeepTesting java module if it does not yet exist. Paste the following sample in it. Feel free to change this later.
 
-**🚨 The code snippet and explanation within the video is currently not up-to-date with the latest MeepMeep 2.0.x API 🚨**
-
 ```java
-package com.example.meepmeeptesting;
+package com.examle.meepmeeptesting;
 
-import com.acmerobotics.roadrunner.geometry.Pose2d;
-import com.noahbres.meepmeep.MeepMeep;
+import com.acmerobotics.roadrunner.Pose2d;
 import com.noahbres.meepmeep.roadrunner.DefaultBotBuilder;
 import com.noahbres.meepmeep.roadrunner.entity.RoadRunnerBotEntity;
 
@@ -66,18 +60,18 @@ public class MeepMeepTesting {
         RoadRunnerBotEntity myBot = new DefaultBotBuilder(meepMeep)
                 // Set bot constraints: maxVel, maxAccel, maxAngVel, maxAngAccel, track width
                 .setConstraints(60, 60, Math.toRadians(180), Math.toRadians(180), 15)
-                .followTrajectorySequence(drive ->
-                        drive.trajectorySequenceBuilder(new Pose2d(0, 0, 0))
-                                .forward(30)
-                                .turn(Math.toRadians(90))
-                                .forward(30)
-                                .turn(Math.toRadians(90))
-                                .forward(30)
-                                .turn(Math.toRadians(90))
-                                .forward(30)
-                                .turn(Math.toRadians(90))
-                                .build()
-                );
+                .build();
+
+        myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(0, 0, 0))
+                .lineToX(30)
+                .turn(Math.toRadians(90))
+                .lineToY(30)
+                .turn(Math.toRadians(90))
+                .lineToX(0)
+                .turn(Math.toRadians(90))
+                .lineToY(0)
+                .turn(Math.toRadians(90))
+                .build());
 
         meepMeep.setBackground(MeepMeep.Background.FIELD_POWERPLAY_OFFICIAL)
                 .setDarkMode(true)
@@ -112,7 +106,6 @@ Or, enable it _before_ initializing your `MeepMeep` instance with the following 
 
 ### Adding a second bot:
 
-MeepMeep version 2.x introduces a new API and updated entity handling, allowing one to run and coordinate multiple trajectories.
 Declare a new `RoadRunnerBotEntity` and add it via `MeepMeep#addEntity(Entity)`.
 
 <img src="/images/readme/two-bot-demo.gif" width="500" height="500"/>
@@ -120,7 +113,7 @@ Declare a new `RoadRunnerBotEntity` and add it via `MeepMeep#addEntity(Entity)`.
 ```java
 package com.example.meepmeeptesting;
 
-import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.acmerobotics.roadrunner.Pose2d;
 import com.noahbres.meepmeep.MeepMeep;
 import com.noahbres.meepmeep.core.colorscheme.scheme.ColorSchemeBlueDark;
 import com.noahbres.meepmeep.core.colorscheme.scheme.ColorSchemeRedDark;
@@ -136,41 +129,40 @@ public class MeepMeepTesting {
                 // We set this bot to be blue
                 .setColorScheme(new ColorSchemeBlueDark())
                 .setConstraints(60, 60, Math.toRadians(180), Math.toRadians(180), 15)
-                .followTrajectorySequence(drive ->
-                        drive.trajectorySequenceBuilder(new Pose2d(0, 0, 0))
-                                .forward(30)
-                                .turn(Math.toRadians(90))
-                                .forward(30)
-                                .turn(Math.toRadians(90))
-                                .forward(30)
-                                .turn(Math.toRadians(90))
-                                .forward(30)
-                                .turn(Math.toRadians(90))
-                                .build()
-                );
+                .build();
+
+        myFirstBot.runAction(myFirstBot.getDrive().actionBuilder(new Pose2d(0, 0, 0))
+                .lineToX(30)
+                .turn(Math.toRadians(90))
+                .lineToY(30)
+                .turn(Math.toRadians(90))
+                .lineToX(0)
+                .turn(Math.toRadians(90))
+                .lineToY(0)
+                .turn(Math.toRadians(90))
+                .build());
 
         // Declare out second bot
         RoadRunnerBotEntity mySecondBot = new DefaultBotBuilder(meepMeep)
                 // We set this bot to be red
                 .setColorScheme(new ColorSchemeRedDark())
                 .setConstraints(60, 60, Math.toRadians(180), Math.toRadians(180), 15)
-                .followTrajectorySequence(drive ->
-                        drive.trajectorySequenceBuilder(new Pose2d(30, 30, Math.toRadians(180)))
-                                .forward(30)
-                                .turn(Math.toRadians(90))
-                                .forward(30)
-                                .turn(Math.toRadians(90))
-                                .forward(30)
-                                .turn(Math.toRadians(90))
-                                .forward(30)
-                                .turn(Math.toRadians(90))
-                                .build()
-                );
+                .build();
+
+        mySecondBot.runAction(mySecondBot.getDrive().actionBuilder(new Pose2d(30, 30, Math.toRadians(180)))
+                .lineToX(0)
+                .turn(Math.toRadians(90))
+                .lineToY(0)
+                .turn(Math.toRadians(90))
+                .lineToX(30)
+                .turn(Math.toRadians(90))
+                .lineToY(30)
+                .turn(Math.toRadians(90))
+                .build());
 
         meepMeep.setBackground(MeepMeep.Background.FIELD_FREIGHTFRENZY_ADI_DARK)
                 .setDarkMode(true)
                 .setBackgroundAlpha(0.95f)
-
                 // Add both of our declared bot entities
                 .addEntity(myFirstBot)
                 .addEntity(mySecondBot)
@@ -178,20 +170,6 @@ public class MeepMeepTesting {
     }
 }
 ```
-
-### Pulling Specific Jitpack Commits
-
-MeepMeep is hosted on JitPack. This allows the user to pull dependencies from any Git commit. Change the dependency version in `build.gradle` to do so.
-
-- Pull from a specific tagged version (same as install instructions)
-  - `implementation 'com.github.NoahBres:MeepMeep:2.0.2'`
-  - `2.0.2` can be replaced with whatever version specified on the [GitHub releases page](https://github.com/NoahBres/MeepMeep/releases)
-- Pull from whatever the latest commit on the master branch is
-  - `implementation 'com.github.NoahBres:MeepMeep:-SNAPSHOT'`
-- Pull from a specific commit
-  - `implementation 'com.github.NoahBres:MeepMeep:<commit version ID>'`
-  - `<commit ID>` is replaced with ID of commit. For example "79d123f0c1"
-  - This is not the full commit hash. It is the first 10 characters of the comit hash
 
 ### Notes:
 
@@ -208,5 +186,3 @@ Default Bot Settings:
 - Start Pose: (x: 0in, y: 0in, heading: 0rad)
 - Color Scheme: Inherited from MeepMeep.colorManager unless overriden
 - Drive Train Type: Mecanum
-
-<!-- [![YouTube Installation Video](/images/readme/thumbnail-half.jpg?raw=true)](https://youtu.be/vdn1v404go8) -->
