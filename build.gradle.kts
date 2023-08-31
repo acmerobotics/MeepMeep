@@ -8,31 +8,20 @@ plugins {
     kotlin("jvm") version "1.9.0"
 }
 
-val meepMeepVersion = "1.0-SNAPSHOT"
-
-group = "com.noahbres.meepmeep"
-version = "1.0-SNAPSHOT"
-
-val pomUrl = "https://github.com/NoahBres/MeepMeep"
-val pomScmUrl = "https://github.com/NoahBres/MeepMeep"
-val pomIssueUrl = "https://github.com/NoahBres/MeepMeep/issues"
-val pomDesc = "https://github.com/NoahBres/MeepMeep"
-
-val githubRepo = "NoahBres/MeepMeep"
+val githubRepo = "acmerobotics/MeepMeep"
 val githubReadme = "README.md"
+
+val pomUrl = "https://github.com/$githubRepo"
+val pomScmUrl = "https://github.com/$githubRepo"
+val pomIssueUrl = "https://github.com/$githubRepo/issues"
+val pomDesc = "https://github.com/$githubRepo"
 
 repositories {
     // Use jcenter for resolving dependencies.
     // You can declare any Maven/Ivy/file repository here
     maven(url = "https://maven.brott.dev/")
     mavenCentral()
-    mavenLocal()
 }
-
-//java {
-//    sourceCompatibility = JavaVersion.VERSION_1_8
-//    targetCompatibility = JavaVersion.VERSION_1_8
-//}
 
 dependencies {
     // Align versions of all Kotlin components
@@ -44,8 +33,8 @@ dependencies {
     // Use the Kotlin test library.
     testImplementation("org.jetbrains.kotlin:kotlin-test")
 
-    api("com.acmerobotics.roadrunner:core:1.0.0-beta3-SNAPSHOT")
-    api("com.acmerobotics.roadrunner:actions:1.0.0-beta3-SNAPSHOT")
+    api("com.acmerobotics.roadrunner:core:1.0.0-beta3")
+    api("com.acmerobotics.roadrunner:actions:1.0.0-beta3")
 }
 
 sourceSets["main"].java {
@@ -61,9 +50,9 @@ val sourcesJar by tasks.creating(Jar::class) {
 publishing {
     publications {
         create<MavenPublication>("meepmeep") {
-            groupId = "com.noahbres.meepmeep"
-            artifactId = "meepmeep"
-            version = meepMeepVersion
+            groupId = "com.acmerobotics.roadrunner"
+            artifactId = "MeepMeep"
+            version = "0.1.0"
 
             from(components["java"])
             artifact(sourcesJar)
