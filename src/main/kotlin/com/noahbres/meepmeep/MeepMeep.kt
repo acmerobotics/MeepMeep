@@ -12,6 +12,7 @@ import com.noahbres.meepmeep.roadrunner.ui.TrajectoryProgressSliderMaster
 import java.awt.*
 import java.awt.datatransfer.StringSelection
 import java.awt.event.*
+import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
 import javax.swing.*
 import javax.swing.border.EtchedBorder
@@ -264,6 +265,14 @@ open class MeepMeep @JvmOverloads constructor(private val windowSize: Int, fps: 
     fun setBackground(background: Background = Background.GRID_BLUE): MeepMeep {
         val classLoader = Thread.currentThread().contextClassLoader
 
+        fun rotated(im: BufferedImage, angle: Double): BufferedImage {
+            val rotatedImage = BufferedImage(im.width, im.height, im.type)
+            val graphics2D = rotatedImage.createGraphics()
+            graphics2D.rotate(angle, im.width / 2.0, im.height / 2.0)
+            graphics2D.drawImage(im, null, 0, 0)
+            return rotatedImage
+        }
+
         bg = when (background) {
             Background.GRID_BLUE -> {
                 colorManager.isDarkMode = false
@@ -321,7 +330,18 @@ open class MeepMeep @JvmOverloads constructor(private val windowSize: Int, fps: 
                 colorManager.isDarkMode = false
                 ImageIO.read(classLoader.getResourceAsStream("background/season-2022-powerplay/field-2022-kai-light.png"))
             }
-
+            Background.FIELD_CENTERSTAGE_OFFICIAL -> {
+                colorManager.isDarkMode = false
+                rotated(ImageIO.read(classLoader.getResourceAsStream("background/season-2023-centerstage/field-2023-official.png")), Math.toRadians(90.0))
+            }
+            Background.FIELD_CENTERSTAGE_JUICE_DARK -> {
+                colorManager.isDarkMode = true
+                rotated(ImageIO.read(classLoader.getResourceAsStream("background/season-2023-centerstage/field-2023-juice-dark.png")), Math.toRadians(90.0))
+            }
+            Background.FIELD_CENTERSTAGE_JUICE_LIGHT -> {
+                colorManager.isDarkMode = false
+                rotated(ImageIO.read(classLoader.getResourceAsStream("background/season-2023-centerstage/field-2023-juice-light.png")), Math.toRadians(90.0))
+            }
         }.getScaledInstance(windowSize, windowSize, Image.SCALE_SMOOTH)
 
         refreshTheme()
@@ -457,6 +477,9 @@ open class MeepMeep @JvmOverloads constructor(private val windowSize: Int, fps: 
         FIELD_FREIGHTFRENZY_ADI_DARK,
         FIELD_POWERPLAY_OFFICIAL,
         FIELD_POWERPLAY_KAI_DARK,
-        FIELD_POWERPLAY_KAI_LIGHT
+        FIELD_POWERPLAY_KAI_LIGHT,
+        FIELD_CENTERSTAGE_OFFICIAL,
+        FIELD_CENTERSTAGE_JUICE_DARK,
+        FIELD_CENTERSTAGE_JUICE_LIGHT,
     }
 }
