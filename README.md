@@ -47,7 +47,7 @@ Fork of [MeepMeep](https://github.com/NoahBres/MeepMeep) that supports [Road Run
 8.  Create a class for your MeepMeepTesting java module if it does not yet exist. Paste the following sample in it. Feel free to change this later.
 
 ```java
-package com.examle.meepmeeptesting;
+package com.example.meepmeeptesting;
 
 import com.acmerobotics.roadrunner.Pose2d;
 import com.noahbres.meepmeep.roadrunner.DefaultBotBuilder;
