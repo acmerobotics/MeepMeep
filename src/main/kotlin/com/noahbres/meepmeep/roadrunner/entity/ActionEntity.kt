@@ -177,8 +177,9 @@ class ActionEntity(
                 }
                 is TurnAction -> {
                     val turnEntity = TurnIndicatorEntity(
-                        meepMeep, colorScheme, action.t.beginPose.position, action.t.beginPose.heading.log(),
-                        (action.t.beginPose.heading + action.t.angle).log()
+                        meepMeep, colorScheme, action.t.beginPose.position,
+                        action.t.beginPose.heading,
+                        action.t.angle,
                     )
                     turnEntityList.add(turnEntity)
                     meepMeep.requestToAddEntity(turnEntity)

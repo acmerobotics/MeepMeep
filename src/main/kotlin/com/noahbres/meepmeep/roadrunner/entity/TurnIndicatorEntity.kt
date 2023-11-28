@@ -9,16 +9,20 @@ import com.noahbres.meepmeep.core.entity.ThemedEntity
 import com.noahbres.meepmeep.core.util.FieldUtil
 import java.awt.BasicStroke
 import java.awt.Graphics2D
+import java.awt.geom.Arc2D
+import java.awt.geom.Ellipse2D
+import java.awt.geom.Line2D
+import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.min
+import kotlin.math.roundToInt
 
 class TurnIndicatorEntity(
         override val meepMeep: MeepMeep,
         private var colorScheme: ColorScheme,
-
         private val pos: Vector2d,
-        private val startAngle: Double,
-        private val endAngle: Double
+        private val startAngle: Rotation2d,
+        private val angle: Double,
 ) : ThemedEntity {
     private var canvasWidth = FieldUtil.CANVAS_WIDTH
     private var canvasHeight = FieldUtil.CANVAS_HEIGHT
@@ -31,8 +35,8 @@ class TurnIndicatorEntity(
     private val TURN_ARC_RADIUS = 7.5
     private val TURN_STROKE_WIDTH = 0.5
     private val TURN_ARROW_LENGTH = 1.5
-    private val TURN_ARROW_ANGLE = 30.0.toRadians()
-    private val TURN_ARROW_ANGLE_ADJUSTMENT = (-12.5).toRadians()
+    private val TURN_ARROW_ANGLE = (30.0).toRadians()
+    private val TURN_ARROW_ANGLE_ADJUSTMENT = (10.0).toRadians()
 
     override fun update(deltaTime: Long) {
     }
@@ -41,37 +45,45 @@ class TurnIndicatorEntity(
         gfx.color = colorScheme.TRAJECTORY_TURN_COLOR
         gfx.stroke = BasicStroke(TURN_STROKE_WIDTH.scaleInToPixel().toFloat(), BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND)
 
-        gfx.fillOval(
-                (pos.toScreenCoord().x - TURN_CIRCLE_RADIUS.scaleInToPixel() / 2).toInt(),
-                (pos.toScreenCoord().y - TURN_CIRCLE_RADIUS.scaleInToPixel() / 2).toInt(),
-                TURN_CIRCLE_RADIUS.scaleInToPixel().toInt(), TURN_CIRCLE_RADIUS.scaleInToPixel().toInt()
-        )
+        gfx.fill(Ellipse2D.Double(
+            (pos.toScreenCoord().x - TURN_CIRCLE_RADIUS.scaleInToPixel() / 2),
+            (pos.toScreenCoord().y - TURN_CIRCLE_RADIUS.scaleInToPixel() / 2),
+            TURN_CIRCLE_RADIUS.scaleInToPixel(), TURN_CIRCLE_RADIUS.scaleInToPixel()
+        ))
 
-        gfx.drawArc(
-                (pos.toScreenCoord().x - TURN_ARC_RADIUS.scaleInToPixel() / 2).toInt(),
-                (pos.toScreenCoord().y - TURN_ARC_RADIUS.scaleInToPixel() / 2).toInt(),
-                TURN_ARC_RADIUS.scaleInToPixel().toInt(), TURN_ARC_RADIUS.scaleInToPixel().toInt(),
-                min(startAngle.toDegrees().toInt(), endAngle.toDegrees().toInt()),
-                abs(startAngle.toDegrees().toInt() - endAngle.toDegrees().toInt())
-        )
+        if (angle >= 2 * PI) {
+            gfx.draw(Ellipse2D.Double(
+                (pos.toScreenCoord().x - TURN_ARC_RADIUS.scaleInToPixel() / 2),
+                (pos.toScreenCoord().y - TURN_ARC_RADIUS.scaleInToPixel() / 2),
+                TURN_ARC_RADIUS.scaleInToPixel(), TURN_ARC_RADIUS.scaleInToPixel()
+            ))
+        } else {
+            gfx.draw(Arc2D.Double(
+                (pos.toScreenCoord().x - TURN_ARC_RADIUS.scaleInToPixel() / 2),
+                (pos.toScreenCoord().y - TURN_ARC_RADIUS.scaleInToPixel() / 2),
+                TURN_ARC_RADIUS.scaleInToPixel(), TURN_ARC_RADIUS.scaleInToPixel(),
+                startAngle.log().toDegrees(), angle.toDegrees(),
+                Arc2D.OPEN
+            ))
+        }
 
-        val arrowPointVec = Rotation2d.exp(endAngle) * Vector2d(TURN_ARC_RADIUS / 2, 0.0)
-        val translatedPoint = (pos + arrowPointVec).toScreenCoord()
+        val arrowBasePoint = pos + ((startAngle + angle) * Vector2d(TURN_ARC_RADIUS / 2, 0.0))
 
-        var arrow1Rotated = endAngle - 90.0.toRadians() + TURN_ARROW_ANGLE + TURN_ARROW_ANGLE_ADJUSTMENT
-        if (endAngle < startAngle) arrow1Rotated = 360.0.toRadians() - arrow1Rotated
+        val arrowVec1 = (startAngle + angle + (-TURN_ARROW_ANGLE - PI / 2 - TURN_ARROW_ANGLE_ADJUSTMENT)) * Vector2d(TURN_ARROW_LENGTH, 0.0)
+        val arrowVec2 = (startAngle + angle + (+TURN_ARROW_ANGLE - PI / 2 - TURN_ARROW_ANGLE_ADJUSTMENT)) * Vector2d(TURN_ARROW_LENGTH, 0.0)
 
-        var arrow2Rotated = endAngle - 90.0.toRadians() - TURN_ARROW_ANGLE + TURN_ARROW_ANGLE_ADJUSTMENT
-        if (endAngle < startAngle) arrow2Rotated = 360.0.toRadians() - arrow2Rotated
+        val arrowStartScreen = arrowBasePoint.toScreenCoord()
+        val arrowEndScreen1 = (arrowBasePoint + arrowVec1).toScreenCoord()
+        val arrowEndScreen2 = (arrowBasePoint + arrowVec2).toScreenCoord()
 
-        val arrowEndVec1 = (pos + arrowPointVec) + Rotation2d.exp(arrow1Rotated) * Vector2d(TURN_ARROW_LENGTH, 0.0)
-        val translatedArrowEndVec1 = arrowEndVec1.toScreenCoord()
-
-        val arrowEndVec2 = (pos + arrowPointVec) + Rotation2d.exp(arrow2Rotated) * Vector2d(TURN_ARROW_LENGTH, 0.0)
-        val translatedArrowEndVec2 = arrowEndVec2.toScreenCoord()
-
-        gfx.drawLine(translatedPoint.x.toInt(), translatedPoint.y.toInt(), translatedArrowEndVec1.x.toInt(), translatedArrowEndVec1.y.toInt())
-        gfx.drawLine(translatedPoint.x.toInt(), translatedPoint.y.toInt(), translatedArrowEndVec2.x.toInt(), translatedArrowEndVec2.y.toInt())
+        gfx.draw(Line2D.Double(
+            arrowStartScreen.x, arrowStartScreen.y,
+            arrowEndScreen1.x, arrowEndScreen1.y
+        ))
+        gfx.draw(Line2D.Double(
+            arrowStartScreen.x, arrowStartScreen.y,
+            arrowEndScreen2.x, arrowEndScreen2.y
+        ))
     }
 
     override fun setCanvasDimensions(canvasWidth: Double, canvasHeight: Double) {
