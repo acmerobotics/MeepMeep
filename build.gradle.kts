@@ -41,6 +41,10 @@ sourceSets["main"].java {
     srcDir("src/main/kotlin")
 }
 
+sourceSets["test"].java {
+    srcDir("src/test/kotlin")
+}
+
 // Create sources Jar from main kotlin sources
 val sourcesJar by tasks.creating(Jar::class) {
     archiveClassifier.set("sources")
