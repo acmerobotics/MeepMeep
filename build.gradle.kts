@@ -56,7 +56,7 @@ publishing {
         create<MavenPublication>("meepmeep") {
             groupId = "com.acmerobotics.roadrunner"
             artifactId = "MeepMeep"
-            version = "0.1.2"
+            version = "0.1.3"
 
             from(components["java"])
             artifact(sourcesJar)
