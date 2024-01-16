@@ -19,6 +19,7 @@ class DefaultBotBuilder(private val meepMeep: MeepMeep) {
     private var opacity = 0.8
 
     private var driveTrainType = DriveTrainType.MECANUM
+    private var name = "RR_Bot_Default"
 
     fun setDimensions(width: Double, height: Double): DefaultBotBuilder {
         this.width = width
@@ -35,7 +36,10 @@ class DefaultBotBuilder(private val meepMeep: MeepMeep) {
 
     fun setConstraints(constraints: Constraints): DefaultBotBuilder {
         this.constraints = constraints
-
+        return this
+    }
+    fun setName(robotName: String): DefaultBotBuilder {
+        this.name = robotName
         return this
     }
 
@@ -69,7 +73,7 @@ class DefaultBotBuilder(private val meepMeep: MeepMeep) {
             constraints,
             width, height,
             startPose, colorScheme ?: meepMeep.colorManager.theme, opacity,
-            driveTrainType, false
+            driveTrainType, false, name
         )
     }
 }
