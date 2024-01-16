@@ -124,6 +124,10 @@ open class MeepMeep @JvmOverloads constructor(private val windowSize: Int, fps: 
         for (i in 0 until originalSize) {
             entityList[i].update(deltaTime)
         }
+        if (motionDataDisplayWindow.isVisible){
+            val robots = entityList.filterIsInstance<RoadRunnerBotEntity>()
+            motionDataDisplayWindow.updateData(robots)
+        }
     }
 
     private val loopManager = LoopManager(fps, update, render)
@@ -148,6 +152,8 @@ open class MeepMeep @JvmOverloads constructor(private val windowSize: Int, fps: 
 
     private var canvasMouseX = 0
     private var canvasMouseY = 0
+    private val motionDataDisplayWindow = MotionDataDisplayWindow()
+
 
     init {
         // Core init
@@ -224,8 +230,16 @@ open class MeepMeep @JvmOverloads constructor(private val windowSize: Int, fps: 
                     val clipboard = Toolkit.getDefaultToolkit().systemClipboard
                     clipboard.setContents(stringSelection, null)
                 }
+                if (e.keyCode == KeyEvent.VK_P) {
+                    if (motionDataDisplayWindow.isVisible) {
+                        motionDataDisplayWindow.isVisible = false
+                    } else {
+                        val robots = entityList.filterIsInstance<RoadRunnerBotEntity>()
+                        motionDataDisplayWindow.updateData(robots)
+                        motionDataDisplayWindow.isVisible = true
+                    }
+                }
             }
-
             override fun keyReleased(p0: KeyEvent?) {}
         })
 
@@ -482,4 +496,33 @@ open class MeepMeep @JvmOverloads constructor(private val windowSize: Int, fps: 
         FIELD_CENTERSTAGE_JUICE_DARK,
         FIELD_CENTERSTAGE_JUICE_LIGHT,
     }
+    class MotionDataDisplayWindow : JFrame("Robot Trajectory Data") {
+        private val dataTextArea = JTextArea()
+
+        init {
+            setSize(500, 400)
+            defaultCloseOperation = HIDE_ON_CLOSE
+            layout = BorderLayout()
+
+            dataTextArea.font = Font("Sans", Font.PLAIN, 12)
+            dataTextArea.foreground = ColorManager.COLOR_PALETTE.GRAY_100
+            dataTextArea.background = ColorManager.COLOR_PALETTE.GRAY_800
+            dataTextArea.isEditable = false
+
+            val scrollPane = JScrollPane(dataTextArea)
+            add(scrollPane, BorderLayout.CENTER)
+        }
+
+        fun updateData(robots: List<RoadRunnerBotEntity>) {
+            val data = StringBuilder()
+            robots.forEach { robot ->
+                data.append("Robot: ${robot.name}\n")
+                data.append("Velocity:\n   X: ${robot.velocityinx()}\n   Y: ${robot.velocityiny()}\n")
+                data.append("Acceleration:\n   X: ${robot.accelerationinx()}\n   Y: ${robot.accelerationiny()}\n")
+                data.append("Jerk:\n   X: ${robot.jerkinx()}\n   Y: ${robot.jerkiny()}\n\n")
+            }
+            dataTextArea.text = data.toString()
+        }
+    }
+
 }
