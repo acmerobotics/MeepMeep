@@ -31,7 +31,7 @@ Fork of [MeepMeep](https://github.com/NoahBres/MeepMeep) that supports [Road Run
 
 6.  At the bottom of the file add the following gradle snippet:
 
-        ```
+        
         repositories {
             maven { url = 'https://maven.brott.dev/' }
         }
@@ -39,7 +39,7 @@ Fork of [MeepMeep](https://github.com/NoahBres/MeepMeep) that supports [Road Run
         dependencies {
             implementation 'com.acmerobotics.roadrunner:MeepMeep:0.1.3'
         }
-        ```
+        
 
 7.  When android studio prompts you to make a gradle sync, click "Sync Now".
     <img src="/images/readme/installationStep7.png" width="644" height="20"/>
