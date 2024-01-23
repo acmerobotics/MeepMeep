@@ -48,8 +48,9 @@ Fork of [MeepMeep](https://github.com/NoahBres/MeepMeep) that supports [Road Run
 
 ```java
 package com.example.meepmeeptesting;
-import com.noahbres.meepmeep.MeepMeep;
+
 import com.acmerobotics.roadrunner.Pose2d;
+import com.noahbres.meepmeep.MeepMeep;
 import com.noahbres.meepmeep.roadrunner.DefaultBotBuilder;
 import com.noahbres.meepmeep.roadrunner.entity.RoadRunnerBotEntity;
 
