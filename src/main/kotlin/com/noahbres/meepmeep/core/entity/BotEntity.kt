@@ -17,7 +17,8 @@ open class BotEntity(
 
     var pose: Pose2d,
     private var colorScheme: ColorScheme,
-    private val opacity: Double
+    private val opacity: Double,
+    private val name: String
 ) : ThemedEntity {
     override val tag = "DEFAULT_BOT_ENTITY"
 
