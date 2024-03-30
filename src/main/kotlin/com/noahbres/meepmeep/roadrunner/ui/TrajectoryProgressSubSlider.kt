@@ -51,11 +51,12 @@ class TrajectoryProgressSubSlider(
 
         g.font = font.deriveFont(16f)
         g.color = textColor
-        if (entity.currentAction != null) {
+        val currentActionTimeline = entity.currentActionTimeline
+        if (currentActionTimeline != null) {
             val progressText = DecimalFormat("0.00").format(
                 progress * maxTrajectoryDuration
             )
-            val totalText = DecimalFormat("0.00").format(actionTimeline(entity.currentAction!!).first)
+            val totalText = DecimalFormat("0.00").format(currentActionTimeline.duration)
             val mainDrawString = "${progressText} / ${totalText}s"
 
             g.drawString(

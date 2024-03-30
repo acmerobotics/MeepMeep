@@ -26,10 +26,12 @@ data class ActionEvent(
     val a: Action, // primitive action (not SequentialAction, ParallelAction)
 )
 
-typealias Timeline = List<ActionEvent>
-typealias Duration = Double
+data class ActionTimeline(
+    val duration: Double,
+    val events: List<ActionEvent>
+)
 
-fun actionTimeline(a: Action): Pair<Duration, Timeline> {
+fun actionTimeline(a: Action): ActionTimeline {
     val timeline = mutableListOf<ActionEvent>()
 
     // Adds the primitive actions to the timeline starting at time. Returns the time at which a completes.
@@ -69,12 +71,12 @@ fun actionTimeline(a: Action): Pair<Duration, Timeline> {
 
     timeline.sortBy { it.time }
 
-    return Pair(duration, timeline)
+    return ActionTimeline(duration, timeline)
 }
 
 class ActionEntity(
     override val meepMeep: MeepMeep,
-    action: Action,
+    val actionTimeline: ActionTimeline,
     private var colorScheme: ColorScheme
 ) : ThemedEntity {
     companion object {
@@ -106,8 +108,6 @@ class ActionEntity(
     private var currentSegment: TrajectoryAction? = null
 
     var trajectoryProgress: Double? = null
-
-    val timeline = actionTimeline(action).second
 
     init {
         redrawPath()
@@ -154,7 +154,7 @@ class ActionEntity(
 //        val firstVec = action.start().vec().toScreenCoord()
 //        trajectoryDrawnPath.moveTo(firstVec.x, firstVec.y)
 
-        for ((t0, action) in timeline) {
+        for ((t0, action) in actionTimeline.events) {
             when (action) {
                 is TrajectoryAction -> {
                     val displacementSamples = (action.t.path.length() / SAMPLE_RESOLUTION).roundToInt()
@@ -188,7 +188,7 @@ class ActionEntity(
         }
 
         var poseSupplier: (Double) -> Pose2d = { Pose2d(0.0, 0.0, 0.0) }
-        for ((t0, action) in timeline) {
+        for ((t0, action) in actionTimeline.events) {
             when (action) {
                 is SleepAction -> {}
                 is TurnAction -> {
@@ -285,7 +285,7 @@ class ActionEntity(
         currentSegment = if (trajectoryProgress == null) {
             null
         } else {
-            (timeline
+            (actionTimeline.events
                 .filter { (_, a) -> a is TrajectoryAction }
                 .firstOrNull { (t0, a) ->
                     trajectoryProgress!! < (t0 +

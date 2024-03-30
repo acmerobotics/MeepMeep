@@ -36,7 +36,7 @@ class RoadRunnerBotEntity(
 
     var drive = DriveShim(driveTrainType, constraints, pose)
 
-    var currentAction: Action? = null
+    var currentActionTimeline: ActionTimeline? = null
 
     private var actionEntity: ActionEntity? = null
 
@@ -59,7 +59,7 @@ class RoadRunnerBotEntity(
 
         if (!trajectoryPaused) trajectorySequenceElapsedTime += deltaTime / 1e9
 
-        val (dt, timeline) = actionTimeline(currentAction!!)
+        val (dt, timeline) = currentActionTimeline ?: return
 
         when {
             trajectorySequenceElapsedTime <= dt -> {
@@ -125,14 +125,14 @@ class RoadRunnerBotEntity(
     }
 
     fun setTrajectoryProgressSeconds(seconds: Double) {
-        if (currentAction != null)
-            trajectorySequenceElapsedTime = min(seconds, actionTimeline(currentAction!!).first)
+        val currentActionTimeline = currentActionTimeline
+        trajectorySequenceElapsedTime = min(seconds, (currentActionTimeline ?: return).duration)
     }
 
     fun runAction(action: Action) {
-        currentAction = action
-
-        actionEntity = ActionEntity(meepMeep, action, colorScheme)
+        val t = actionTimeline(action)
+        currentActionTimeline = t
+        actionEntity = ActionEntity(meepMeep, t, colorScheme)
     }
 
     fun setConstraints(constraints: Constraints) {

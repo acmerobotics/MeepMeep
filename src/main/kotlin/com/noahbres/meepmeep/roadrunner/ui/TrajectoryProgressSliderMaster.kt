@@ -52,7 +52,7 @@ class TrajectoryProgressSliderMaster(
     fun addRoadRunnerBot(bot: RoadRunnerBotEntity) {
         if (botList.indexOfFirst { it.first == bot } != -1) throw Exception("RoadRunnerBotEntity instance has already been added")
 
-        val currSeqDuration = bot.currentAction?.let { actionTimeline(it).first } ?: 0.0
+        val currSeqDuration = bot.currentActionTimeline?.duration ?: 0.0
         if (currSeqDuration >= maxTrajectoryDuration) {
             maxTrajectoryDuration = currSeqDuration
             maxTrajectoryIndex = botList.size
