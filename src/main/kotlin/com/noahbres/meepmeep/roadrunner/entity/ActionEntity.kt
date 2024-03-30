@@ -12,16 +12,29 @@ import java.awt.image.BufferedImage
 import java.lang.RuntimeException
 import kotlin.math.roundToInt
 
-sealed interface ActionStub
-
-class TrajectoryActionStub(val t: TimeTrajectory) : ActionStub, Action {
-    override fun run(p: com.acmerobotics.dashboard.telemetry.TelemetryPacket) = TODO()
-    override fun toString() = t.toString()
+sealed interface ActionStub {
+    val duration: Double
+    operator fun get(t: Double): Pose2d
 }
 
-class TurnActionStub(val t: TimeTurn) : ActionStub, Action {
+
+class TrajectoryActionStub(val traj: TimeTrajectory) : ActionStub, Action {
     override fun run(p: com.acmerobotics.dashboard.telemetry.TelemetryPacket) = TODO()
-    override fun toString() = "${t.angle} ${t.beginPose} ${t.reversed}"
+
+    override val duration = traj.duration
+    override fun get(t: Double) = traj[t].value()
+
+    override fun toString() = traj.toString()
+}
+
+class TurnActionStub(val turn: TimeTurn) : ActionStub, Action {
+    override fun run(p: com.acmerobotics.dashboard.telemetry.TelemetryPacket) = TODO()
+
+
+    override val duration = turn.duration
+    override fun get(t: Double) = turn[t].value()
+
+    override fun toString() = "${turn.angle} ${turn.beginPose} ${turn.reversed}"
 }
 
 data class ActionEvent(
@@ -29,6 +42,7 @@ data class ActionEvent(
     val a: ActionStub,
 )
 
+// Note: There may be gaps in action timelines.
 data class ActionTimeline(
     val duration: Double,
     val events: List<ActionEvent>
@@ -53,12 +67,12 @@ fun actionTimeline(a: Action): ActionTimeline {
 
             is TrajectoryActionStub -> {
                 timeline.add(ActionEvent(time, a))
-                time + a.t.profile.duration
+                time + a.duration
             }
 
             is TurnActionStub -> {
                 timeline.add(ActionEvent(time, a))
-                time + a.t.profile.duration
+                time + a.duration
             }
 
             is SleepAction -> {
@@ -160,13 +174,13 @@ class ActionEntity(
         for ((t0, action) in actionTimeline.events) {
             when (action) {
                 is TrajectoryActionStub -> {
-                    val displacementSamples = (action.t.path.length() / SAMPLE_RESOLUTION).roundToInt()
+                    val displacementSamples = (action.traj.path.length() / SAMPLE_RESOLUTION).roundToInt()
 
                     val displacements = (0..displacementSamples).map {
-                        it / displacementSamples.toDouble() * action.t.path.length()
+                        it / displacementSamples.toDouble() * action.traj.path.length()
                     }
 
-                    val poses = displacements.map { action.t.path[it, 1].value() }
+                    val poses = displacements.map { action.traj.path[it, 1].value() }
 
                     for (pose in poses.drop(1)) {
                         val coord = pose.position.toScreenCoord()
@@ -180,9 +194,9 @@ class ActionEntity(
                 }
                 is TurnActionStub -> {
                     val turnEntity = TurnIndicatorEntity(
-                        meepMeep, colorScheme, action.t.beginPose.position,
-                        action.t.beginPose.heading,
-                        action.t.angle,
+                        meepMeep, colorScheme, action.turn.beginPose.position,
+                        action.turn.beginPose.heading,
+                        action.turn.angle,
                     )
                     turnEntityList.add(turnEntity)
                     meepMeep.requestToAddEntity(turnEntity)
@@ -193,11 +207,11 @@ class ActionEntity(
         var poseSupplier: (Double) -> Pose2d = { Pose2d(0.0, 0.0, 0.0) }
         for ((t0, action) in actionTimeline.events) {
             when (action) {
-                is TurnActionStub -> {
-                    poseSupplier = { action.t[it - t0].value() }
-                }
                 is TrajectoryActionStub -> {
-                    poseSupplier = { action.t[it - t0].value() }
+                    poseSupplier = { action.traj[it - t0].value() }
+                }
+                is TurnActionStub -> {
+                    poseSupplier = { action.turn[it - t0].value() }
                 }
                 else -> {
                     val markerEntity = MarkerIndicatorEntity(meepMeep, colorScheme, poseSupplier(t0), t0)
@@ -253,9 +267,9 @@ class ActionEntity(
             BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND
         )
 
-        val traj = currentSegment!!.t
+        val traj = currentSegment!!.traj
 
-        val firstVec = currentSegment!!.t.path.begin(1).position.value().toScreenCoord()
+        val firstVec = currentSegment!!.traj.path.begin(1).position.value().toScreenCoord()
         trajectoryDrawnPath.moveTo(firstVec.x, firstVec.y)
 
         val displacementSamples = (traj.path.length() / SAMPLE_RESOLUTION).roundToInt()
@@ -292,7 +306,7 @@ class ActionEntity(
                 .firstOrNull { (t0, a) ->
                     trajectoryProgress!! < (t0 +
                             when (a) {
-                                is TrajectoryActionStub -> a.t.duration
+                                is TrajectoryActionStub -> a.traj.duration
 //                                is TurnAction -> a.t.duration
 //                                is SleepAction -> a.dt
                                 else -> throw RuntimeException()

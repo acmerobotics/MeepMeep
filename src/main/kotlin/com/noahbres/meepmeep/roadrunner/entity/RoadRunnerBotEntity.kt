@@ -63,21 +63,22 @@ class RoadRunnerBotEntity(
 
         when {
             trajectorySequenceElapsedTime <= dt -> {
-                var segment: ActionStub? = null
-                var segmentOffsetTime = 0.0
-
+                var segPose: Pose2d? = null
                 for ((beginTime, seg) in timeline) {
-                    if (beginTime > trajectorySequenceElapsedTime) break
+                    // Fill in the gap with the starting pose of the next segment.
+                    if (beginTime > trajectorySequenceElapsedTime) {
+                        segPose = seg[0.0]
+                        break
+                    }
 
-                    segment = seg
-                    segmentOffsetTime = trajectorySequenceElapsedTime - beginTime
+                    val segmentOffsetTime = trajectorySequenceElapsedTime - beginTime
+                    if (segmentOffsetTime < seg.duration) {
+                        segPose = seg[segmentOffsetTime]
+                        break
+                    }
                 }
 
-                pose = when (segment) {
-                    is TurnActionStub -> segment.t[segmentOffsetTime].value()
-                    is TrajectoryActionStub -> segment.t[segmentOffsetTime].value()
-                    else -> throw RuntimeException("MeepMeep can't handle an action of type ${segment?.javaClass?.simpleName}")
-                }
+                pose = segPose ?: Pose2d(0.0, 0.0, 0.0)
 
                 drive.poseEstimate = pose
 
