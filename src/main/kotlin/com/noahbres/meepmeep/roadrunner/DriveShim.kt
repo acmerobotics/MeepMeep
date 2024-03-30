@@ -26,8 +26,13 @@ class DriveShim(driveTrainType: DriveTrainType, private val constraints: Constra
         return TrajectoryActionBuilder(
             ::TurnActionStub,
             ::TrajectoryActionStub,
-            startPose,
-            1e-6, 0.0,
+            TrajectoryBuilderParams(
+                1e-6,
+                ProfileParams(
+                    0.25, 0.1, 1e-2
+                )
+            ),
+            startPose, 0.0,
             TurnConstraints(
                 constraints.maxAngVel,
                 -constraints.maxAngAccel,
@@ -35,7 +40,6 @@ class DriveShim(driveTrainType: DriveTrainType, private val constraints: Constra
             ),
             velConstraint,
             accelConstraint,
-            0.25, 0.1,
         )
     }
 }
