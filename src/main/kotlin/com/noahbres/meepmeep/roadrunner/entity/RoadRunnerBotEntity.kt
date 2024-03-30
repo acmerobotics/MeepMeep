@@ -30,10 +30,6 @@ class RoadRunnerBotEntity(
 
     var listenToSwitchThemeRequest: Boolean = false
 ) : BotEntity(meepMeep, width, height, pose, colorScheme, opacity), EntityEventListener {
-    companion object {
-        const val SKIP_LOOPS = 2
-    }
-
     override val tag = "RR_BOT_ENTITY"
 
     override var zIndex: Int = 0
@@ -55,15 +51,11 @@ class RoadRunnerBotEntity(
 
     var trajectoryPaused = false
 
-    private var skippedLoops = 0
-
     private var sliderMaster: TrajectoryProgressSliderMaster? = null
     private var sliderMasterIndex: Int? = null
 
     override fun update(deltaTime: Long) {
         if (!running) return
-
-        if (skippedLoops++ < SKIP_LOOPS) return
 
         if (!trajectoryPaused) trajectorySequenceElapsedTime += deltaTime / 1e9
 
