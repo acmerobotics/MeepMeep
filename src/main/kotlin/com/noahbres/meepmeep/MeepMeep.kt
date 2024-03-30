@@ -139,13 +139,6 @@ open class MeepMeep @JvmOverloads constructor(private val windowSize: Int, fps: 
         )
     }
 
-    var middleButtonPanel = JPanel()
-
-    private val standardCursorButton = JButton("test")
-    private val pathSelectionButton = JButton("test 2")
-
-    private val middleButtonList = mutableListOf(standardCursorButton, pathSelectionButton)
-
     private var canvasMouseX = 0
     private var canvasMouseY = 0
 
@@ -173,23 +166,7 @@ open class MeepMeep @JvmOverloads constructor(private val windowSize: Int, fps: 
         )
 
         // Handle UI
-
-        middleButtonList.forEach {
-            it.alignmentX = 0.5f
-            it.background = colorManager.theme.UI_MAIN_BG
-        }
-
-        middleButtonPanel.background = colorManager.theme.UI_MAIN_BG
-        middleButtonPanel.border = BorderFactory.createEtchedBorder(EtchedBorder.LOWERED)
-        middleButtonPanel.layout = BoxLayout(middleButtonPanel, BoxLayout.Y_AXIS)
-
-        middleButtonPanel.add(Box.createVerticalGlue())
-        middleButtonPanel.add(standardCursorButton)
-        middleButtonPanel.add(pathSelectionButton)
-        middleButtonPanel.add(Box.createVerticalGlue())
-
         windowFrame.canvasPanel.add(progressSliderMasterPanel)
-//        windowFrame.contentPane.add(middleButtonPanel)
 
         windowFrame.pack()
 
@@ -372,13 +349,6 @@ open class MeepMeep @JvmOverloads constructor(private val windowSize: Int, fps: 
 
         windowFrame.contentPane.background = colorManager.theme.UI_MAIN_BG
         windowFrame.canvasPanel.background = colorManager.theme.UI_MAIN_BG
-
-        // Road Runner Refresh
-        middleButtonPanel.background = colorManager.theme.UI_MAIN_BG
-
-        middleButtonList.forEach {
-            it.background = colorManager.theme.UI_MAIN_BG
-        }
     }
 
     fun setDarkMode(isDarkMode: Boolean): MeepMeep {
