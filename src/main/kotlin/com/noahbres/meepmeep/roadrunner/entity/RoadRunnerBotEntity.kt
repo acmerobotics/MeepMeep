@@ -63,7 +63,7 @@ class RoadRunnerBotEntity(
 
         when {
             trajectorySequenceElapsedTime <= dt -> {
-                var segment: Action? = null
+                var segment: ActionStub? = null
                 var segmentOffsetTime = 0.0
 
                 for ((beginTime, seg) in timeline) {
@@ -74,8 +74,8 @@ class RoadRunnerBotEntity(
                 }
 
                 pose = when (segment) {
-                    is TurnAction -> segment.t[segmentOffsetTime].value()
-                    is TrajectoryAction -> segment.t[segmentOffsetTime].value()
+                    is TurnActionStub -> segment.t[segmentOffsetTime].value()
+                    is TrajectoryActionStub -> segment.t[segmentOffsetTime].value()
                     else -> throw RuntimeException("MeepMeep can't handle an action of type ${segment?.javaClass?.simpleName}")
                 }
 

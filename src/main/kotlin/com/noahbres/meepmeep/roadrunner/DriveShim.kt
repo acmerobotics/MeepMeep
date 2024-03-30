@@ -1,8 +1,8 @@
 package com.noahbres.meepmeep.roadrunner
 
 import com.acmerobotics.roadrunner.*
-import com.noahbres.meepmeep.roadrunner.entity.TrajectoryAction
-import com.noahbres.meepmeep.roadrunner.entity.TurnAction
+import com.noahbres.meepmeep.roadrunner.entity.TrajectoryActionStub
+import com.noahbres.meepmeep.roadrunner.entity.TurnActionStub
 
 class DriveShim(driveTrainType: DriveTrainType, private val constraints: Constraints, var poseEstimate: Pose2d) {
     private val velConstraint = when (driveTrainType) {
@@ -24,8 +24,8 @@ class DriveShim(driveTrainType: DriveTrainType, private val constraints: Constra
 
     fun actionBuilder(startPose: Pose2d): TrajectoryActionBuilder {
         return TrajectoryActionBuilder(
-            ::TurnAction,
-            ::TrajectoryAction,
+            ::TurnActionStub,
+            ::TrajectoryActionStub,
             startPose,
             1e-6, 0.0,
             TurnConstraints(
