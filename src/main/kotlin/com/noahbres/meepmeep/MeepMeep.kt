@@ -319,6 +319,18 @@ open class MeepMeep @JvmOverloads constructor(private val windowSize: Int, fps: 
                 colorManager.isDarkMode = false
                 rotated(ImageIO.read(classLoader.getResourceAsStream("background/season-2023-centerstage/field-2023-juice-light.png")), Math.toRadians(90.0))
             }
+            Background.FIELD_INTOTHEDEEP_OFFICIAL -> {
+                colorManager.isDarkMode = false
+                ImageIO.read(classLoader.getResourceAsStream("background/season-2024-intothedeep/field-2024-official.png")), Math.toRadians(90.0)
+            }
+            Background.FIELD_INTOTHEDEEP_JUICE_DARK -> {
+                colorManager.isDarkMode = false
+                ImageIO.read(classLoader.getResourceAsStream("background/season-2024-intothedeep/field-2024-juice-dark.png")), Math.toRadians(90.0)
+            }
+            Background.FIELD_INTOTHEDEEP_JUICE_LIGHT -> {
+                colorManager.isDarkMode = false
+                ImageIO.read(classLoader.getResourceAsStream("background/season-2024-intothedeep/field-2024-juice-light.png")), Math.toRadians(90.0)
+            }
         }.getScaledInstance(windowSize, windowSize, Image.SCALE_SMOOTH)
 
         refreshTheme()
@@ -451,5 +463,8 @@ open class MeepMeep @JvmOverloads constructor(private val windowSize: Int, fps: 
         FIELD_CENTERSTAGE_OFFICIAL,
         FIELD_CENTERSTAGE_JUICE_DARK,
         FIELD_CENTERSTAGE_JUICE_LIGHT,
+        FIELD_INTOTHEDEEP_OFFICIAL,
+        FIELD_INTOTHEDEEP_JUICE_DARK,
+        FIELD_INTOTHEDEEP_JUICE_LIGHT,
     }
 }
