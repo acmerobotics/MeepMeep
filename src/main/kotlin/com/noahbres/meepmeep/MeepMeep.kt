@@ -321,15 +321,15 @@ open class MeepMeep @JvmOverloads constructor(private val windowSize: Int, fps: 
             }
             Background.FIELD_INTOTHEDEEP_OFFICIAL -> {
                 colorManager.isDarkMode = false
-                ImageIO.read(classLoader.getResourceAsStream("background/season-2024-intothedeep/field-2024-official.png")), Math.toRadians(90.0)
+                ImageIO.read(classLoader.getResourceAsStream("background/season-2024-intothedeep/field-2024-official.png"))
             }
             Background.FIELD_INTOTHEDEEP_JUICE_DARK -> {
                 colorManager.isDarkMode = false
-                ImageIO.read(classLoader.getResourceAsStream("background/season-2024-intothedeep/field-2024-juice-dark.png")), Math.toRadians(90.0)
+                ImageIO.read(classLoader.getResourceAsStream("background/season-2024-intothedeep/field-2024-juice-dark.png"))
             }
             Background.FIELD_INTOTHEDEEP_JUICE_LIGHT -> {
                 colorManager.isDarkMode = false
-                ImageIO.read(classLoader.getResourceAsStream("background/season-2024-intothedeep/field-2024-juice-light.png")), Math.toRadians(90.0)
+                ImageIO.read(classLoader.getResourceAsStream("background/season-2024-intothedeep/field-2024-juice-light.png"))
             }
         }.getScaledInstance(windowSize, windowSize, Image.SCALE_SMOOTH)
 
