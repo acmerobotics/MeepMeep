@@ -37,7 +37,7 @@ Fork of [MeepMeep](https://github.com/NoahBres/MeepMeep) that supports [Road Run
         }
 
         dependencies {
-            implementation 'com.acmerobotics.roadrunner:MeepMeep:0.1.3'
+            implementation 'com.acmerobotics.roadrunner:MeepMeep:0.1.6'
         }
         
 
