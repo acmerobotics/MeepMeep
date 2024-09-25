@@ -1,6 +1,6 @@
 # MeepMeep
 
-Fork of [MeepMeep](https://github.com/NoahBres/MeepMeep) that supports [Road Runner 1.0](https://rr.brott.dev/docs/v1-0/new-features/).
+Fork of [MeepMeep](https://github.com/rh-robotics/MeepMeep) that supports [Road Runner 0.5.x](https://rr.brott.dev/docs/v0-5/installation/).
 
 <img src="/images/readme/screen-recording.gif" width="500" height="500"/>
 
