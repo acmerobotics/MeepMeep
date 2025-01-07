@@ -33,8 +33,8 @@ dependencies {
     // Use the Kotlin test library.
     testImplementation("org.jetbrains.kotlin:kotlin-test")
 
-    api("com.acmerobotics.roadrunner:core:1.0.0")
-    api("com.acmerobotics.roadrunner:actions:1.0.0")
+    api("com.acmerobotics.roadrunner:core:1.0.1")
+    api("com.acmerobotics.roadrunner:actions:1.0.1")
 }
 
 sourceSets["main"].java {
