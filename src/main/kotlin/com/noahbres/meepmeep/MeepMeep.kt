@@ -339,6 +339,14 @@ open class MeepMeep @JvmOverloads constructor(private val windowSize: Int, fps: 
                 colorManager.isDarkMode = true
                 ImageIO.read(classLoader.getResourceAsStream("background/season-2025-decode/field-2025-juice-dark.png"))
             }
+            Background.FIELD_DECODE_JUICE_BLACK -> {
+                colorManager.isDarkMode = true
+                ImageIO.read(classLoader.getResourceAsStream("background/season-2025-decode/field-2025-juice-black.png"))
+            }
+            Background.FIELD_DECODE_JUICE_PAPER -> {
+                colorManager.isDarkMode = false
+                ImageIO.read(classLoader.getResourceAsStream("background/season-2025-decode/field-2025-juice-paper.png"))
+            }
             Background.FIELD_DECODE_JUICE_LIGHT -> {
                 colorManager.isDarkMode = false
                 ImageIO.read(classLoader.getResourceAsStream("background/season-2025-decode/field-2025-juice-light.png"))
@@ -480,6 +488,8 @@ open class MeepMeep @JvmOverloads constructor(private val windowSize: Int, fps: 
         FIELD_INTO_THE_DEEP_JUICE_LIGHT,
         FIELD_DECODE_OFFICIAL,
         FIELD_DECODE_JUICE_DARK,
+        FIELD_DECODE_JUICE_BLACK,
+        FIELD_DECODE_JUICE_PAPER,
         FIELD_DECODE_JUICE_LIGHT,
     }
 }
