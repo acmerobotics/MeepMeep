@@ -90,14 +90,37 @@ open class MeepMeep @JvmOverloads constructor(private val windowSize: Int, fps: 
         )
 
         g.font = Font("Sans", Font.BOLD, 14)
+        // Measure font information
+        val metrics = g.fontMetrics
+        val coordString = "(%.1f, %.1f)".format(
+            mouseToFieldCoords.x,
+            mouseToFieldCoords.y,
+        )
+        val textWidth = metrics.stringWidth(coordString)
+        val textHeight = metrics.height
+        val textAscent = metrics.ascent
+        val coordDisplayX = 10
+        val coordDisplayY = canvas.height - 8
+        val padding = 2;
+        // Draw background
+        g.color = if (colorManager.isDarkMode) {
+            ColorManager.COLOR_PALETTE.GRAY_800
+        } else {
+            ColorManager.COLOR_PALETTE.GRAY_100
+        }
+
+        g.fillRect(
+            coordDisplayX - padding,
+            coordDisplayY - textAscent - padding,
+            textWidth + (padding * 2),
+            textHeight + (padding * 2)
+        )
+
         g.color =
             if (colorManager.isDarkMode) ColorManager.COLOR_PALETTE.GRAY_100 else ColorManager.COLOR_PALETTE.GRAY_800
 
         g.drawString(
-            "(%.1f, %.1f)".format(
-                mouseToFieldCoords.x,
-                mouseToFieldCoords.y,
-            ), 10, canvas.height - 8
+            coordString, coordDisplayX, coordDisplayY
         )
 
         g.dispose()
