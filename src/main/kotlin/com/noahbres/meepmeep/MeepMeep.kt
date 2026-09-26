@@ -374,6 +374,26 @@ open class MeepMeep @JvmOverloads constructor(private val windowSize: Int, fps: 
                 colorManager.isDarkMode = false
                 ImageIO.read(classLoader.getResourceAsStream("background/season-2025-decode/field-2025-juice-light.png"))
             }
+
+            Background.FIELD_BIOBUZZ_JUICE_DARK -> {
+                colorManager.isDarkMode = true
+                ImageIO.read(classLoader.getResourceAsStream("background/season-2026-biobuzz/field-2026-juice-dark.png"))
+            }
+
+            Background.FIELD_BIOBUZZ_JUICE_BLACK -> {
+                colorManager.isDarkMode = true
+                ImageIO.read(classLoader.getResourceAsStream("background/season-2026-biobuzz/field-2026-juice-black.png"))
+            }
+
+            Background.FIELD_BIOBUZZ_JUICE_LIGHT -> {
+                colorManager.isDarkMode = false
+                ImageIO.read(classLoader.getResourceAsStream("background/season-2026-biobuzz/field-2026-juice-light.png"))
+            }
+
+            Background.FIELD_BIOBUZZ_JUICE_PAPER -> {
+                colorManager.isDarkMode = false
+                ImageIO.read(classLoader.getResourceAsStream("background/season-2026-biobuzz/field-2026-juice-paper.png"))
+            }
         }.getScaledInstance(windowSize, windowSize, Image.SCALE_SMOOTH)
 
         refreshTheme()
@@ -514,5 +534,10 @@ open class MeepMeep @JvmOverloads constructor(private val windowSize: Int, fps: 
         FIELD_DECODE_JUICE_BLACK,
         FIELD_DECODE_JUICE_PAPER,
         FIELD_DECODE_JUICE_LIGHT,
+
+        FIELD_BIOBUZZ_JUICE_DARK,
+        FIELD_BIOBUZZ_JUICE_BLACK,
+        FIELD_BIOBUZZ_JUICE_PAPER,
+        FIELD_BIOBUZZ_JUICE_LIGHT
     }
 }
